@@ -2,6 +2,7 @@
 # Imports
 import(mclust)
 importFrom("graphics", "lines", "par", "points", "polygon")
+importFrom("sandwich", "estfun", "bread", "sandwich", "vcovCL")
 importFrom("drc", "drm", "LL.3", "ED", "estfun.drc")
 importFrom("stats", "binom.test", "coef", "complete.cases",
            "df.residual", "median", "model.extract", "model.frame",
@@ -12,7 +13,6 @@ importFrom("stats", "binom.test", "coef", "complete.cases",
 importFrom("utils", "head")
 importFrom("survival", "strata")
 importFrom("grDevices", "gray")
-importFrom("sandwich", "estfun", "bread", "sandwich", "vcovCL")
 importFrom("lmtest", "coeftest")
 # importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
 
@@ -45,3 +45,5 @@ S3method(print, drcte)
 S3method(print, summary.drcte)
 S3method(bread, drcte)
 S3method(estfun, drcte)
+S3method(estfun, drc)
+# S3method(bread, drcte)

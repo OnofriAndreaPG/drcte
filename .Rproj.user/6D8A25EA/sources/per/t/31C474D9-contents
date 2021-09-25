@@ -95,7 +95,7 @@ quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
 
 rm(list = ls())
 sessionInfo()
-devtools::install_github("onofriAndreaPG/drcte")
+# devtools::install_github("onofriAndreaPG/drcte")
 
 data(rape)
 head(rape, 20)
@@ -111,9 +111,9 @@ summary(modTE2)
 modTE3 <- drc::drm(nSeeds ~ timeBef + timeAf + Psi,
             data = rape, fct = HTLL(), type = "event") # Not working
 
-vcovCL(modTE, cluster = rape$Dish)
-vcovCL(modTE2, cluster = rape$Dish)
-
+sandwich::vcovCL(modTE, cluster = rape$Dish)
+sandwich::vcovCL(modTE2, cluster = rape$Dish)
+library(sandwich)
 ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute")
 ED(modTE, Psi = 0, respLev = c(5, 10, 15, 23), type = "relative")
 ED(modTE, Psi = 0, respLev = c(5, 10, 15, 21), type = "relative", rate = T)
@@ -122,7 +122,6 @@ ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute", rate 
 ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute", rate = T,
    interval = "delta", units = rape$Dish)
 
-estfun(modTE)
 quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21))
 quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = T)
 quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T)
