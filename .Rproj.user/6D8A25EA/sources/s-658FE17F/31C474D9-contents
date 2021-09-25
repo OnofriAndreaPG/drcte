@@ -95,6 +95,7 @@ quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
 
 rm(list = ls())
 sessionInfo()
+devtools::install_github("onofriAndreaPG/drcte")
 
 data(rape)
 head(rape, 20)
