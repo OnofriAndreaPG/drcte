@@ -1,0 +1,147 @@
+# Intervals must be non-overlapping. We can use Turnbull's intervals
+# Quantiles can be absolute or relative and rates can also be reported
+library(drcSeedGerm)
+library(drcte)
+devtools
+
+rm(list = ls())
+start <- c(0, 6, 7, 10, 13, 16, 22, 23)
+end <- c(6, 7, 10, 13, 16, 22, 23, Inf)
+count <- c(3, 9, 3, 8, 1, 1, 5, 5)
+
+# Quantiles for NPMLE model ########################################
+mod <- drmte(count ~ start + end, fct = NPMLE())
+ED(mod, respLev = c(0.10, 0.30, 0.50), type = "absolute")
+ED(mod, respLev = c(10, 30, 50), type = "relative")
+ED(mod, respLev = c(10, 30, 50), type = "relative", rate = T)
+ED(mod, respLev = c(10, 30, 50), type = "relative", interval = "boot", B = 1000)
+quantile(mod, probs = c(0.10, 0.30, 0.50))
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = F, rate = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted =F,
+         interval = "boot", B = 1000)
+
+data(verbascum)
+head(verbascum)
+modVerb <- drmte(nSeeds ~ timeBef + timeAf, curveid = Species,
+             fct = NPMLE(), data = verbascum)
+ED(modVerb, respLev = c(0.10, 0.30, 0.50), type = "absolute")
+ED(modVerb, respLev = c(10, 30, 50), type = "relative")
+ED(modVerb, respLev = c(10, 30, 50), type = "relative", rate = T)
+ED(modVerb, respLev = c(10, 30, 50), type = "relative", rate = T)
+devtools::load_all()
+ED(modVerb, respLev = c(10, 30, 50), type = "relative",
+   interval = "boot", B = 250)
+ED(modVerb, respLev = c(10, 30, 50), type = "relative",
+   interval = "boot", B = 250, units = verbascum$Dish)
+
+quantile(mod, probs = c(0.10, 0.30, 0.50))
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = F, rate = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted =F,
+         interval = "boot", B = 1000)
+
+
+# Quantiles for KDE model (bootstrap can be very slow)
+rm(list = ls())
+start <- c(0, 6, 7, 10, 13, 16, 22, 23)
+end <- c(6, 7, 10, 13, 16, 22, 23, Inf)
+count <- c(3, 9, 3, 8, 1, 1, 5, 5)
+
+mod <- drmte(count ~ start + end, fct = KDE())
+KDEfct <- mod$curve[[1]][[1]]
+drcSeedGerm:::quantileKDE(KDEfct, probs = c(0.1, 0.3, 0.5))
+ED(mod, respLev = c(0.10, 0.30, 0.50), type = "absolute")
+ED(mod, respLev = c(10, 30, 50), type = "relative")
+ED(mod, respLev = c(10, 30, 50), type = "relative", rate = T)
+ED(mod, respLev = c(10, 30, 50), type = "relative", interval = "boot",
+   B = 10)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = F)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = T, rate = T)
+quantile(mod, probs = c(0.10, 0.30, 0.50), restricted = T,
+         rate = T, interval = "boot", B = 50)
+
+# Quantiles for a parametric model ##############
+rm(list = ls())
+library(drcte)
+data(chickweed)
+mod <- drmte(count ~ start + end, data = chickweed, fct = LL.3())
+summary(mod)
+ED(mod, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute")
+ED(mod, respLev = c(5, 10, 15, 21), type = "relative")
+ED(mod, respLev = c(5, 10, 15, 21), type = "relative", rate = T)
+ED(mod, respLev = c(0.05, 0.10, 0.15, 0.21),
+   type = "absolute", rate = T,
+   interval = "delta")
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21))
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = T)
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = T, rate = T)
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
+   interval = "delta")
+
+mod <- drmte(count ~ start + end, data = chickweed, fct = loglogistic())
+ED(mod, respLev = c(0.05, 0.10, 0.15, 0.21))
+ED(mod, respLev = c(5, 10, 15, 23), type = "relative")
+ED(mod, respLev = c(5, 10, 15, 21), type = "relative", rate = T)
+ED(mod, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute", rate = T,
+   interval = "delta")
+# ED(mod, respLev = c(10, 30, 50), type = "relative", interval = "boot", B = 100)
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21))
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = T)
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T)
+quantile(mod, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
+   interval = "delta")
+
+rm(list = ls())
+sessionInfo()
+
+data(rape)
+head(rape, 20)
+#devtools::load_all()
+library(drcte)
+startList <- c(0.67, 1.14, -0.95, 0.37) #Diverso calcolo valori iniziali
+modTE <- drmte(nSeeds ~ timeBef + timeAf + Psi,
+            data = rape, fct = HTLL(), start = startList)
+# modTE2 <- drcSeedGerm:::drm(nSeeds ~ timeBef + timeAf + Psi,
+#             data = rape, fct = drcte::HTLL(), type = "event", start = startList)
+summary(modTE)
+summary(modTE2)
+modTE3 <- drc::drm(nSeeds ~ timeBef + timeAf + Psi,
+            data = rape, fct = HTLL(), type = "event") # Not working
+
+vcovCL(modTE, cluster = rape$Dish)
+vcovCL(modTE2, cluster = rape$Dish)
+
+ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute")
+ED(modTE, Psi = 0, respLev = c(5, 10, 15, 23), type = "relative")
+ED(modTE, Psi = 0, respLev = c(5, 10, 15, 21), type = "relative", rate = T)
+ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute", rate = T,
+   interval = "delta")
+ED(modTE, Psi = 0, respLev = c(0.05, 0.10, 0.15, 0.21), type = "absolute", rate = T,
+   interval = "delta", units = rape$Dish)
+
+estfun(modTE)
+quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21))
+quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = T)
+quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T)
+quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
+   interval = "delta")
+quantile(modTE, Psi = 0, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
+   interval = "delta", units = rape$Dish)
+
+# This is to vectorise
+psiList <- seq(0, 1, 0.25)
+names(psiList) <- as.character(psiList)
+lapply(psiList, function(x) quantile(modTE, Psi = x, probs = c(0.05, 0.10, 0.15, 0.21), restricted = F, rate = T,
+   interval = "delta", units = rape$Dish, display = F))
+
+# Verbascum
+
+tab <- quantile(modTE, probs = c(0.1, 0.3))
+tab2 <- data.frame(Time = tab[,4],
+                   Species = rep(c("V. arcturus",
+                                   "V. blattaria", "V. creticum"), each = 2),
+                   Prediction = tab[,1],
+                   SEs = tab[,2])
+kable(tab2, booktabs = T, caption = "Table 4. Prediction for the cumulative proportion of germinated seeds from the data of Example 3 (Figure 4). Cluster robust bootstrap standard errors are given.")

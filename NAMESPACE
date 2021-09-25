@@ -1,0 +1,47 @@
+
+# Imports
+import(mclust)
+importFrom("graphics", "lines", "par", "points", "polygon")
+importFrom("drc", "drm", "LL.3", "ED", "estfun.drc")
+importFrom("stats", "binom.test", "coef", "complete.cases",
+           "df.residual", "median", "model.extract", "model.frame",
+           "model.matrix", "model.response", "model.weights",
+           "na.omit", "nls", "optim", "plogis", "pnorm", "ppoints",
+           "predict", "terms", "deriv", "lm", "sortedXyData", "printCoefmat",
+           "na.pass", "qnorm", "qt", "vcov", "quantile", "sd")
+importFrom("utils", "head")
+importFrom("survival", "strata")
+importFrom("grDevices", "gray")
+importFrom("sandwich", "estfun", "bread", "sandwich", "vcovCL")
+importFrom("lmtest", "coeftest")
+# importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
+
+# Exports: general
+export(drmte, drmteControl, loglogistic, loglogisticSurv,
+       lognormal, KDE, NPMLE,
+       compCDF, makeDrm, makeDrm2)
+
+# Hydro-time models
+export(PmaxPsi1.fun, PmaxPsi1,
+       GRPsiLin, GRPsiLin.fun,
+       GRPsiPol, GRPsiPol.fun,
+       GRPsiPol2, GRPsiPol2.fun,
+       HTE1, HTE1.fun, HTLL)
+# Thermal-time models
+export(TTEM, TTEM.fun, PmaxT1.fun, PmaxT1,
+       GRT.M.fun, GRT.M)
+
+# Service functions
+# export(NLSLL.3)
+
+## S3 methods
+S3method(summary, drcte)
+S3method(plot, drcte)
+S3method(coef, drcte)
+S3method(predict, drcte)
+S3method(ED, drcte)
+S3method(quantile, drcte)
+S3method(print, drcte)
+S3method(print, summary.drcte)
+S3method(bread, drcte)
+S3method(estfun, drcte)
