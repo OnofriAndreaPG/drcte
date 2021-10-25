@@ -1,8 +1,10 @@
-\name{makeDrm}
-\alias{makeDrm}
-%- Also NEED an '\alias' for EACH other topic documented here.
+\name{melt_te}
+\alias{melt_te}
+\alias{ungroup_te}
+\alias{group_te}
+\alias{decumulate_te}
 \title{
-Reshape a seed germination datasets to obey the requirements of drm()
+Functions to reshape a seed germination/emergence dataset to obey the requirements of time-to-event methods
 }
 \description{
 MakeDrm: this function reshapes a common recording sheet for germination assays into the kind of dataset required by the function drm() in the drc package. In the common dataset, there is one row per each Petri dish, which lists the number of germinated seeds at each assessment time.

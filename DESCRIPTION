@@ -4,7 +4,7 @@ Type: Package
 Title: Statistical approaches for data analyses in seed germination assays
 Version: 1.0.0
 Depends: R (>= 4.0.0), drc
-Imports: plyr, kedd, nor1mix, fitdistrplus, graphics, stats, mclust, survival, sandwich, lmtest
+Imports: plyr, kedd, nor1mix, fitdistrplus, graphics, stats, mclust, survival, sandwich, lmtest, dplyr
 Author: Andrea Onofri <andrea.onofri@unipg.it>
 Maintainer: Andrea Onofri <andrea.onofri@unipg.it>
 Description: This package contains several service functions to be used in support to the package drc, to analyse datasets obtained from seed germination assays. 

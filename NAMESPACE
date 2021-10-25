@@ -14,12 +14,13 @@ importFrom("utils", "head")
 importFrom("survival", "strata")
 importFrom("grDevices", "gray")
 importFrom("lmtest", "coeftest")
+importFrom("dplyr", "select")
 # importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
 
 # Exports: general
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
        lognormal, KDE, NPMLE,
-       compCDF, makeDrm, makeDrm2)
+       compCDF, melt_te, decumulate_te, group_te, ungroup_te)
 
 # Hydro-time models
 export(PmaxPsi1.fun, PmaxPsi1,
