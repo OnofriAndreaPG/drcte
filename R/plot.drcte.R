@@ -58,8 +58,10 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     uniAss <- unique(assayNoOld)
     numAss <- length(uniAss)
 
+
     doPlot <- is.null(level) || any(uniAss %in% level)
-    if (!doPlot) {stop("Nothing to plot")}
+    # if (!doPlot) {stop("Nothing to plot")}
+    if (!doPlot & !is.numeric(level)) {stop("Nothing to plot")} # Change: 31/10/21
 
     plotFct <- (object$"curve")[[1]]
     logDose <- NULL #(object$"curve")[[2]]
@@ -196,7 +198,11 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     {
         level <- uniAss
     } else {
-        level <- intersect(level, uniAss)
+        # level <- intersect(level, uniAss) Corrected 31/10/21
+        level2 <- intersect(level, uniAss)
+        if(length(level2) == 0) level2 <- uniAss[level]
+        level <- level2
+        if(any(is.na(level))) stop("One or more levels are not found") # Added: 31/10/21
     }
     lenlev <- length(level)
 
@@ -262,7 +268,10 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
                 yy = c(pi[i],pi[i],pi[1 + i],pi[1 + i]))
                 return(res)
                 })
-        p <- lapply(coord, function(x) {graphics::polygon(x$xx, x$yy, col = gray(1 - i/10), border = NA)})
+
+        # greyCol <- 1 - i/levelInd[i]
+        greyCol <- 0.9
+        p <- lapply(coord, function(x) {graphics::polygon(x$xx, x$yy, col = gray(greyCol), border = NA)})
         # points(plotPoints, type = plotType, col = colourVec[i], pch = pchVec[i],
         #            cex = cexVec[i], lty = ltyVec[i], ...)
 
@@ -335,7 +344,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
 
     ## Adding legend
-    level <- dlNames[["rNames"]]
+    # level <- dlNames[["rNames"]] Removed on 31/10/21: error
 
     makeLegend <- function(colourVec, legend, legendCex, legendPos, legendText,
                          lenlev, level, ltyVec, noPlot, pchVec, type,
@@ -361,7 +370,9 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         }
 
         ## Removing plot symbol when no points are drawn
-        if ( (identical(type, "none")) || (identical(type, "bars")) )
+
+        if(is.null(pchVec)) pchVec <- 1:length(level) #Added: 31/10/21
+        if ( (identical(type, "none")) || (identical(type, "bars")))
         {
             pchVec[levInd] <- NA
         }
