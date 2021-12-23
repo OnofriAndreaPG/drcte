@@ -1,4 +1,3 @@
-
 # Imports
 import(mclust)
 importFrom("graphics", "lines", "par", "points", "polygon")
@@ -19,18 +18,18 @@ importFrom("dplyr", "select")
 
 # Exports: general
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
-       lognormal, KDE, NPMLE,
+       lognormal, KDE, KDE.fun, NPMLE,
        compCDF, melt_te, decumulate_te, group_te, ungroup_te)
 
 # Hydro-time models
-export(PmaxPsi1.fun, PmaxPsi1,
-       GRPsiLin, GRPsiLin.fun,
-       GRPsiPol, GRPsiPol.fun,
-       GRPsiPol2, GRPsiPol2.fun,
-       HTE1, HTE1.fun, HTLL)
-# Thermal-time models
-export(TTEM, TTEM.fun, PmaxT1.fun, PmaxT1,
-       GRT.M.fun, GRT.M)
+# export(PmaxPsi1.fun, PmaxPsi1,
+#        GRPsiLin, GRPsiLin.fun,
+#        GRPsiPol, GRPsiPol.fun,
+#        GRPsiPol2, GRPsiPol2.fun,
+#        HTE1, HTE1.fun, HTLL)
+# # Thermal-time models
+# export(TTEM, TTEM.fun, PmaxT1.fun, PmaxT1,
+#        GRT.M.fun, GRT.M)
 
 # Service functions
 # export(NLSLL.3)

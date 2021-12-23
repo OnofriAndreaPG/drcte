@@ -153,8 +153,8 @@ quantileKDE.boot <- function(start, end, count, probs,
 
   if (any(probs < 0) | any(probs > 1)) stop("probs should be between 0 and 1.")
   # B <- 1; seed <- 1234; type = "absolute"; rate = F; probs = c(0.1, 0.2)
-  set.seed(seed)
-  newdata <- simulateTE(start, end, count, B = B, seed = seed)
+  # set.seed(seed)
+  newdata <- simulateTE(start, end, count, B = B)
   fcns <- lapply(newdata, function(x) Kest.boot(x[,1], x[,2], x[,3])$Fh)
   values <- lapply(fcns, quantileKDE, lower = 0, upper = 1000, probs = probs,
          type = type, rate = rate)

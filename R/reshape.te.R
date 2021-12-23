@@ -1,13 +1,13 @@
-melt_te <- function(data = NULL, count_cols, treat, monitimes,
-                    subjects = NULL, grouped = T){
+melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
+                    n.subjects = NULL, grouped = T){
   # this function reshapes a common field-book for germination assays (WIDE format)
   # into one of two LONG formats (LONG GROUPED and LONG UNGROUPED)
 
   # data is the dataframe to be processed;
   # count_cols is a numeric vector, specifying the positions of the columns containing the counts
-  # treat_cols is a numeric vector, specifying the positions of the columns containing the treatment levels
+  # treat_cols is a vector, specifying the positions/names of the columns containing the treatment levels
   # monitimes is a numeric vector of monitoring times. Same length as number of columns in dataset
-  # subjects is a numeric vector listing the number of viable seeds for each Petri dish (same length as
+  # n.subjects is a numeric vector listing the number of viable seeds for each Petri dish (same length as
   # number of rows in dataset and treat). If missing, it is assumed that all individuals
   # experienced the event.
   # grouped is a logic element, speciefying whether the output should be LONG GROUPED or UNGROUPED
@@ -20,33 +20,35 @@ melt_te <- function(data = NULL, count_cols, treat, monitimes,
   stop("The number of monitoring times must be equal to the number
        of columns with counts")
 
+
   # Load the counts as positions (not as a reference)
   counts <- data[, count_cols]
   colnames(counts) <- monitimes
 
-  # treat: load as position or name
-  treat <- dplyr::select(data, {{ treat }})
+  # treat_cols: load as position or name
+  treat <- dplyr::select(data, {{ treat_cols }})
   # treat <- data[, treat]
   # if(is.vector(treat) | is.factor(treat)){
   #   treat <- data.frame(treat)
   #   colnames(treat) <- names(data)[treat_cols]
   # }
 
-  # Subjects: uses column or external
-  tmp <- try(dplyr::select(data, {{ subjects }}), silent = T)
-
+  # n.subjects: uses column or external
+  tmp <- try(dplyr::select(data, {{ n.subjects }}), silent = T)
+  class(tmp)
   if(class(tmp) == "try-error"){
-    if(is.null(subjects)) {
+    if(is.null(n.subjects)) {
       nViable <- apply(counts, 1, sum)
       } else {
-      nViable <- subjects
+
+      nViable <- n.subjects
       }
   } else {
     nViable <-  tmp[,1]
   }
 
 
-  df <- makeDrm(counts = counts, treat = treat, nViable = nViable,
+  df <- makeDrm.drcte(counts = counts, treat = treat, nViable = nViable,
                 moniTimes = monitimes)
 
   if(grouped == F){
@@ -60,7 +62,7 @@ melt_te <- function(data = NULL, count_cols, treat, monitimes,
   return(df)
 }
 
-decumulate_te <- function(data = NULL, resp, treat, monitimes, units, subjects,
+decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.subjects,
                           type = c("count", "proportion")){
   # This function transform a dataset as cumulative germinations in a dataset for
   # use with DRM type = "event". Dish is a factor that identifies seeds
@@ -106,8 +108,14 @@ decumulate_te <- function(data = NULL, resp, treat, monitimes, units, subjects,
   }
 
   # Treatment variables
-  treatGroups <- dplyr::select(data, {{ treat }})
-
+  tmpGroups <- try(dplyr::select(data, {{ treat_cols }}), silent = T)
+  # print(class(tmpGroups))
+  # print(treat_cols)
+  if(class(tmpGroups) == "try-error"){
+    treatGroups <- treat_cols
+  } else {
+    treatGroups <-  tmpGroups
+  }
   # Units could also be an external variable
   tmp <- try(dplyr::select(data, {{ units }}), silent = T)
   if(class(tmp) == "try-error"){
@@ -120,9 +128,9 @@ decumulate_te <- function(data = NULL, resp, treat, monitimes, units, subjects,
   tmp <- factor(Dish)
   nLev <- length(levels(tmp))
   tmp <- factor(tmp, levels = 1:nLev)
-  if(length(subjects) == 1) subjects <- rep(subjects, nLev)
-  if(length(subjects) != nLev) stop("The length of the vector for subjects is not equal to the number of units")
-  nViable <- subjects[tmp]
+  if(length(n.subjects) == 1) n.subjects <- rep(n.subjects, nLev)
+  if(length(n.subjects) != nLev) stop("The length of the vector for subjects is not equal to the number of units")
+  nViable <- n.subjects[tmp]
 
   temp <- data.frame()
   result <- data.frame()
@@ -202,7 +210,7 @@ group_te <- function(data) {
   as.data.frame(tmp)
 }
 
-makeDrm <- function(counts, treat, nViable, moniTimes) {
+makeDrm.drcte <- function(counts, treat, nViable, moniTimes) {
   # this function reshapes a common field-book for germination assays (WIDE format)
   # into the kind of dataset required by the function drm() in the drc package
   # (LONG GROUPED format)
@@ -237,11 +245,15 @@ makeDrm <- function(counts, treat, nViable, moniTimes) {
       cont= cont+1
     }
     Dish[cont] <- j
-    nSeeds[cont] <- nViable[j] - nGermPetri[j]
+    if(!is.na(nViable[j])){
+      nSeeds[cont] <- nViable[j] - nGermPetri[j]
+    } else {
+      nSeeds[cont] <- 0
+    }
     nGerm[cont] <- nGermPetri[j]
     nCum[cont] <- NA
     Prop[cont] <- NA
-    cont=cont+1
+    cont=cont + 1
   }
   group <- treat[rep(row.names(treat), rep(numTimes, length(treat[,1]))), 1:length(treat[1,])]
   if(is.vector(group) | is.factor(group)){
@@ -253,7 +265,7 @@ makeDrm <- function(counts, treat, nViable, moniTimes) {
 }
 
 
-makeSurv <- function(counts, treat, nViable, moniTimes) {
+makeSurv.drcte <- function(counts, treat, nViable, moniTimes) {
   # this function reshapes a common field-book for germination assays (WIDE format)
   # into the kind of dataset required by the function Surv() in the drc package
   # (LONG UNGROUPED format, type = "interval2")

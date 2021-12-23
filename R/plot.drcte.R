@@ -1,5 +1,7 @@
 plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
    type = c("average", "all", "bars", "none", "obs", "confidence"),
+   npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
+   npmle.points = F, kde.points = T,
    broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE, gridsize = 100,
    log = "", xtsty, xttrim = TRUE, xt = NULL, xtlab = NULL, xlab, xlim,
    yt = NULL, ytlab = NULL, ylab, ylim,
@@ -11,7 +13,8 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
   obj <- x
   if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
     object <- obj
-    type <- match.arg(type)
+    type = "all"
+    npmle.type <- match.arg(npmle.type)
 
     ## Determining logarithmic scales
     if ((log == "") || (log == "y"))
@@ -47,17 +50,17 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
       curveid <- obj$ICfit$npmle[,1]
       plotid <- obj$ICfit$npmle[,1]
     } else {
-      # To display naive end-point estimator
+      # To display naive end-point estimator (upd. 21/12/21)
       dose <- dataList[["dose"]]
       resp <- dataList[["origResp"]]
-      curveid <- dataList[["curveid"]]
-      plotid <- dataList[["plotid"]]
+      # curveid <- dataList[["curveid"]]
+      curveid <- dataList$names$rNames[dataList$curveid]
+      # plotid <- dataList[["plotid"]]
+      plotid <- dataList$names$rNames[dataList$plotid]
     }
-
     assayNoOld <- as.vector(curveid)
     uniAss <- unique(assayNoOld)
     numAss <- length(uniAss)
-
 
     doPlot <- is.null(level) || any(uniAss %in% level)
     # if (!doPlot) {stop("Nothing to plot")}
@@ -131,15 +134,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
       plotMat <- NULL
     }
 
-    ## Normalizing the fitted values
-    # if (normal)
-    # {
-    #     respList <- split(resp, curveid)
-    #     plotMat <- mapply(normalizeLU, as.list(as.data.frame(plotMat)),
-    #                       as.list(as.data.frame(getLU(object))),
-    #                       normRef = normRef)
-    # }
-
     maxR <- max(resp)
     options(warn = -1)  # suppressing warning in case maximum of NULL is taken
     maxPM <- unlist(lapply(plotMat, max, na.rm = TRUE))
@@ -162,11 +156,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
     ## Setting a few graphical parameters
     par(las = 1)
-    # if (!is.null(logDose))
-    # {
-    #     if (log == "x") {log <- ""}
-    #     if ( (log == "xy") || (log == "yx") ) {log <- "y"}
-    # }
 
     ## Cutting away original x values outside the limits
     eps1 <- 1e-8
@@ -183,14 +172,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
             points(plotPoints, cex = cexVal, col = colVal, pch = pchVal, ...)
         }
     # }
-
-
-    ## Setting the plot type
-    if(obj$fit$method == "NPMLE"){
-      plotType <- "b"
-    } else {
-      plotType <- "p"
-    }
 
     ## Determining levels to be plotted
 #    uniAss <- unique(assayNoOld)
@@ -226,6 +207,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     {
         colourVec <- rep(col, lenlev)
     }
+
     # Helper function ######
     parFct <- function(gpar, lenlev, defVal = NULL) {
       if (!missing(gpar))
@@ -246,7 +228,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     pchVec <- parFct(pch, lenlev)
 
     ## Plotting data ######################
-    type = "all"
+
     levelInd <- 1:lenlev
     ## Plotting data for the first curve id
     plot(0, type = "n", xlab = xlab, ylab = ylab, log = log,
@@ -255,6 +237,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
          frame.plot = TRUE, ...)
 
     if(shading & obj$fit$method == "NPMLE"){
+      # Plotting grey areas, if requested
       for (i in levelInd)
       {
         indVec <- level[i] == assayNoOld
@@ -275,7 +258,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         # points(plotPoints, type = plotType, col = colourVec[i], pch = pchVec[i],
         #            cex = cexVec[i], lty = ltyVec[i], ...)
 
-        ## Adding error bars
+        ## Adding error bars (inutile?)
         barFct(plotPoints)
 
         ## Add confidence regions
@@ -291,36 +274,47 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         }
     }
 
+    ## Setting the plot type
+    if(obj$fit$method == "NPMLE"){
+      plotType <- "b"
+    } else {
+      plotType <- "p"
+    }
+
     for (i in levelInd) {
       indVec <- level[i] == assayNoOld
-      plotPoints <- cbind(dose[indVec], resp[indVec])
-      # print(plotPoints)
-      plotPoints <- rbind(c(0, 0), plotPoints)
+      x1 <- dose[indVec]
+      y1 <- resp[indVec]
+      y2 <- c(y1[-1], y1[length(y1)])
+      xmid <- c(0, (x1[-1] + x1[-length(x1)])/2, x1[length(x1)])
+      ymid <- c(0, y2)
 
-      # ti <- plotPoints[, 1]
-      # pi <- plotPoints[, 2]
-      # coord <- lapply(1:(length(ti) - 1), function(i){
-      # res <- list(xx = c(ti[i],ti[1 + i],ti[1 + i],ti[i]),
-      #     yy = c(pi[i],pi[i],pi[1 + i],pi[1 + i]))
-      #     return(res)
-      #     })
-      # p <- lapply(coord, function(x) {graphics::polygon(x$xx, x$yy, col = gray(1 - i/10), border = NA)})
+      if(obj$fit$method == "NPMLE"){
+        if(npmle.type == "interpolation"){
+          plotPoints <- cbind(x1, y1)
+          if(npmle.points == T) plotType <- "b" else plotType <- "l"
+        } else if(npmle.type == "midpoint"){
+          plotPoints <- cbind(xmid, ymid)
+          plotType <- "s"
+        } else if(npmle.type == "right"){
+          plotPoints <- cbind(x1, y1)
+          plotType <- "s"
+        } else if(npmle.type == "left"){
+          plotPoints <- cbind(x1, y2)
+          plotType <- "s"
+        }
+      } else{
+        plotPoints <- cbind(x1, y1)
+        # plotType <- "p"
+        if(kde.points == T) plotType <- "p" else plotType <- "n"
+      }
+
       pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], type = plotType,
                          lty = ltyVec[i], ...)
-      # pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], type = "p", ...)
-
-      ## Adding error bars
-      barFct(plotPoints)
-
-      ## Add confidence regions
-      # ciFct(level=i, col=alpha(colourVec[i], 0.25))
       }
-    #     }
-    # }
 
-    ## Plotting fitted curves ####
+    ## Plotting fitted curves #### I need this for KDEs
     plotMat <- as.data.frame(plotMat)
-
     noPlot <- rep(FALSE, lenlev)
     if(obj$fit$method == "KDE")
     {
@@ -363,6 +357,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         levInd <- 1:lenlev
 
         ## Removing line types when lines are not drawn
+        # Penso sia inutile, qui
         ltyVec[noPlot] <- 0
         if (identical(type, "obs"))
         {
@@ -370,12 +365,11 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         }
 
         ## Removing plot symbol when no points are drawn
-
-        if(is.null(pchVec)) pchVec <- 1:length(level) #Added: 31/10/21
-        if ( (identical(type, "none")) || (identical(type, "bars")))
+        # Corrected: 21/12/21
+        if ( obj$fit$method == "NPMLE" & (npmle.points == F | npmle.type != "interpolation"))
         {
             pchVec[levInd] <- NA
-        }
+        } else if (obj$fit$method == "KDE" & kde.points == F ) pchVec[levInd] <- NA
 
         ## Defining position of legend
         if (!missing(legendPos))
@@ -394,8 +388,8 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     }
 
     makeLegend(colourVec, legend, cex.legend, legendPos, legendText,
-               lenlev, level, ltyVec,
-    noPlot, pchVec = NULL, type, xLimits, yLimits)
+               lenlev, level, ltyVec, noPlot, pchVec = pchVec,
+               type, xLimits, yLimits)
 
     ## Resetting graphical parameter
     par(las = 0)
