@@ -27,7 +27,7 @@ ungroup_te(data, counts)
   \item{grouped}{logical: specifying whether the output should be in LONG GROUPED or LONG UNGROUPED format}
 }
 \details{
-Details are given in \link{https://www.statforbiology.com/2021/stat_drcte_3-reshapingdata/}
+Details are given in \url{https://www.statforbiology.com/2021/stat_drcte_3-reshapingdata/}
 }
 \value{
 Returns a data frame
@@ -49,7 +49,8 @@ head(datasetG, 16)
 
 # Transform a dataset from WIDE to LONG UNGROUPED
 datasetU <- melt_te(lotusOr, count_cols = 3:17, treat_cols = 1,
-                monitimes = 1:15, n.subjects = rep(25,12), grouped = F)
+                monitimes = 1:15, n.subjects = rep(25,12),
+                grouped = FALSE)
 head(datasetU, 16)
 
 # From LONG GROUPED to LONG UNGROUPED

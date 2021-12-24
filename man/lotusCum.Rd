@@ -30,16 +30,21 @@ Gresta, F., Avola, G., Onofri, A., Anastasi, U., Cristaudo, A., 2011. When Does 
 }
 \examples{
 data(lotusCum)
-head(lotusCum)
-moniTime <- lotusCum$Time
-count <- lotusCum$nCum
-nViable <- rep(25, length(lotusCum[,1]))
-Dish <- as.factor(lotusCum$Dish)
-treatGroups <- lotusCum[,1]
-dataset_sd <- makeDrm2(moniTime, count, nViable, Dish, treatGroups)
-head(dataset_sd)
-count <- lotusCum$nSeeds
-dataset_sd <- makeDrm2(moniTime, count, nViable, Dish, treatGroups, cumulative = FALSE)
-head(dataset_sd)
+data(lotusCum)
+dataset_sd <- decumulate_te(lotusCum,
+                            resp = nCum,
+                            treat_cols = Stage,
+                            monitimes = Time,
+                            units = Dish,
+                            n.subjects = rep(25, 12),
+                            type = "count")
+
+dataset_sd <- decumulate_te(lotusCum,
+                            resp = Prop,
+                            treat_cols = "Stage",
+                            monitimes = Time,
+                            units = Dish,
+                            n.subjects = rep(25, 12),
+                            type = "proportion")
 }
 \keyword{datasets}

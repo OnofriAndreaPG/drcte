@@ -73,7 +73,12 @@ Setting \code{lowerl} and/or \code{upperl} automatically invokes constrained opt
 
 % \note{}
 
-%\examples{}
+\examples{
+rm(list = ls())
+data(verbascum)
+modVerb <- drmte(nSeeds ~ timeBef + timeAf, curveid = Species,
+             fct = NPMLE(), data = verbascum)
+}
 
 \keyword{seed science, plant science, models}
 \keyword{time-to-event regression}

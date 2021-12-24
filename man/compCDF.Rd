@@ -60,7 +60,6 @@ Some code is taken from the 'interval' package and from the 'binnednp' package (
 \examples{
 rm(list = ls())
 data(verbascum)
-head(verbascum)
 modVerb <- drmte(nSeeds ~ timeBef + timeAf, curveid = Species,
              fct = NPMLE(), data = verbascum)
 compCDF(modVerb, units = verbascum$Dish)

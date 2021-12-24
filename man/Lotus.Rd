@@ -31,11 +31,10 @@ Gresta, F., Avola, G., Onofri, A., Anastasi, U., Cristaudo, A., 2011. When Does 
 }
 \examples{
 data(lotus)
-library(drc)
-#A constraint was put on the second curve (Stage B), in order to avoid an estimate
-#higher than 1.
-mod <- drm(count ~ timeBef + timeAf, data=lotus, fct=LL.3(),
-           curveid=Stage, type="event", upperl = c(NA, 1, NA))
+library(drcte)
+#A constraint was put on the second curve (Stage B), in order to avoid an estimate higher than 1.
+mod <- drmte(count ~ timeBef + timeAf, data=lotus, fct=LL.3(),
+           curveid=Stage, upperl = c(NA, 1, NA))
 summary(mod)
 }
 \keyword{time-to-event analysis}

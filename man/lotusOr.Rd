@@ -40,11 +40,8 @@ Data are kindly provided by Fabio Gresta (University of Reggio Calabria, Italy).
 Gresta, F., Avola, G., Onofri, A., Anastasi, U., Cristaudo, A., 2011. When Does Hard Coat Impose Dormancy in Legume Seeds? Lotus and Scorpiurus Case Study. Crop Science 51, 1739–1747. }
 \examples{
 data(lotusOr)
-counts <- lotusOr[,3:length(lotusOr[1,])]
-treat <- data.frame(tratt=lotusOr[,1])
-nViable <- rep(25,12)
-moniTimes <- c(1:15)
-datasetDrc <- makeDrm(counts=counts, treat=treat, nViable=nViable, moniTimes)
-head(datasetDrc, 30)
+datasetG <- melt_te(lotusOr, count_cols = 3:17, treat_cols = Stage,
+            monitimes = 1:15, n.subjects = rep(25,12))
+head(datasetG, 16)
 }
 \keyword{time-to-event-analysis, seed germination}

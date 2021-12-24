@@ -8,12 +8,13 @@ importFrom("stats", "binom.test", "coef", "complete.cases",
            "model.matrix", "model.response", "model.weights",
            "na.omit", "nls", "optim", "plogis", "pnorm", "ppoints",
            "predict", "terms", "deriv", "lm", "sortedXyData", "printCoefmat",
-           "na.pass", "qnorm", "qt", "vcov", "quantile", "sd")
+           "na.pass", "qnorm", "qt", "vcov", "quantile", "sd", "update")
 importFrom("utils", "head")
 importFrom("survival", "strata")
 importFrom("grDevices", "gray")
 importFrom("lmtest", "coeftest")
 importFrom("dplyr", "select")
+importFrom("multcomp", "parm")
 # importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
 
 # Exports: general

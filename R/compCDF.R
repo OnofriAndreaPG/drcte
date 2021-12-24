@@ -241,7 +241,7 @@ compCDFkde.old <- function(obj,
 
   ## Describes the results
   cat("\n")
-  TEST<-"Bootstrap test based on a Cramér-von-Mises type distance (Barreiro-Ures et al., 2019)"
+  TEST<-"Bootstrap test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
   null.phrase <- "NULL: time-to-event curves are equal"
   alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
 
@@ -366,7 +366,7 @@ compCDFkde <- function(obj,
   pval <- (sum(Db > D) + 1)/(B + 1)
   ## Describes the results
   cat("\n")
-  TEST<-"Permutation test based on a Cramér-von-Mises type distance (Barreiro-Ures et al., 2019)"
+  TEST<-"Permutation test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
   null.phrase <- "NULL HYPOTHESIS: time-to-event curves are equal"
   alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
 
