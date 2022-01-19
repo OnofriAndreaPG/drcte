@@ -1,5 +1,5 @@
-summary.drcte <- function(object, od = FALSE, pool = TRUE,
-                          units = NULL, ...)
+summary.drcte <- function(object,
+                          robust = FALSE, units = NULL, ...)
 {
   if(object$fit$method == "KDE"){
     parVec <- as.vector(coef(object))
@@ -51,14 +51,40 @@ summary.drcte <- function(object, od = FALSE, pool = TRUE,
       sumObj$coefficients <- retMat[,]
       sumObj$varMat <- vcovNew
       sumObj$robust <- "Cluster robust sandwich SEs"
+    } else if(is.null(units) & robust == TRUE){
+      vcovNew <- sandwich(object)
+      retMat <- coeftest(object, vcov. = vcovNew)
+      class(object) <- "drc"
+      sumObj <- summary(object)
+      sumObj$coefficients <- retMat[,]
+      sumObj$varMat <- vcovNew
+      sumObj$robust <- "Robust sandwich SEs"
     } else {
       class(object) <- "drc"
-      sumObj <- summary(object, od = od, pool = pool)
+      sumObj <- summary(object)
       sumObj$robust <- "no"
     }
     }
   sumObj$resVar <- NULL
 
+  class(sumObj) <- c("summary.drcte", "summary.drc")
+  return(sumObj)
+}
+
+summary.drcteList <- function(object,
+                          robust = FALSE, units = NULL, ...)
+{
+
+  tmp <- lapply(object$objVal, function(el) summary(el)$coef)
+  tab <- do.call(rbind, tmp)
+  row.names(tab) <- names(object$coefficients)
+  sumObj <- list()
+  sumObj$coefficients <- tab
+  sumObj$varMat <- NA
+  sumObj$robust <- "no"
+  sumObj$resVar <- NULL
+  sumObj$fctName <- "Parametric"
+  sumObj$text <- "Separate fitting of several time-to-event curves"
   class(sumObj) <- c("summary.drcte", "summary.drc")
   return(sumObj)
 }

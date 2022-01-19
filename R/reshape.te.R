@@ -35,7 +35,6 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
 
   # n.subjects: uses column or external
   tmp <- try(dplyr::select(data, {{ n.subjects }}), silent = T)
-  class(tmp)
   if(class(tmp) == "try-error"){
     if(is.null(n.subjects)) {
       nViable <- apply(counts, 1, sum)
@@ -193,15 +192,29 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
 ungroup_te <- function(data, counts) {
   #This function organises a dataset to be submitted to survival analysis
   #i.e. one row per each seed.
-
-  anName <- deparse(substitute(counts))
   dfr <- data["anName" > 0,]
-  frequency <- subset(dfr, select = anName)[,1]
+  tmp <- try(dplyr::select(dfr, {{ counts }}), silent = T)
+  if(class(tmp) == "try-error"){
+    # Counts is not in data
+    cond <- "external"
+    frequency <- counts
+  } else {
+    # Counts is in data
+    cond <- "internal"
+    anName <- deparse(substitute(counts))
+    frequency <- subset(dfr, select = anName)[,1]
+  }
   nr <- nrow(dfr)
   df_surv <- dfr[rep(seq_len(nr), frequency), ]
   row.names(df_surv) <- 1:(length(df_surv[,1]))
-  toRem <- which(names(df_surv) == anName)
-  df_surv[,-toRem]
+
+  if(cond == "internal"){
+    toRem <- which(names(df_surv) == anName)
+    dfSurv <- df_surv[,-toRem]
+  } else {
+    dfSurv <- df_surv[,-length(df_surv[1,])]
+  }
+  dfSurv
 }
 
 group_te <- function(data) {

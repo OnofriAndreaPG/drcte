@@ -1,227 +1,219 @@
 "drmte" <- function(formula, curveid, pmodels, data = NULL, subset, fct,
 start, na.action = na.omit, logDose = NULL, type = "event",
 control = drmteControl(), lowerl = NULL, upperl = NULL, separate = FALSE,
-pshifts = NULL, varcov = NULL)
-{
+pshifts = NULL, varcov = NULL){
+
   ## Get all arguments from call ############################
   ## Matching argument values
-  # type = "event"
-
   bcVal <- NULL
   bcAdd <- 0
   robust = "mean"
-  # type <- match.arg(type)
-
-    ## Setting na.action option
-    options(na.action = deparse(substitute(na.action)))
-
-    ## Setting control parameters
-    useD <- control$"useD"
-    constrained <- control$"constr"
-#    maxDose <- control$"maxDose"
-    maxIt <- control$"maxIt"
-    optMethod <- control$"method"
-    relTol <- control$"relTol"
-    warnVal <- control$"warnVal"
-#    zeroTol <- control$"zeroTol"
-#    bcConstant <- bcAdd
-    rmNA <- control$"rmNA"  # in drmEM...
-    errorMessage <- control$"errorm"  # in drmOpt
-    noMessage <- control$"noMessage"  # reporting finding control measurements?
+  options(na.action = deparse(substitute(na.action)))
+  useD <- control$"useD"
+  constrained <- control$"constr"
+  # maxDose <- control$"maxDose"
+  maxIt <- control$"maxIt"
+  optMethod <- control$"method"
+  relTol <- control$"relTol"
+  warnVal <- control$"warnVal"
+  # zeroTol <- control$"zeroTol"
+  # bcConstant <- bcAdd
+  rmNA <- control$"rmNA"  # in drmEM...
+  errorMessage <- control$"errorm"  # in drmOpt
+  noMessage <- control$"noMessage"  # reporting finding control measurements?
 #    trace <- control$"trace"
 #    otrace <- control$"otrace"
-    dscaleThres <- control$"dscaleThres"
-    rscaleThres <- control$"rscaleThres"
-    conCheck <- control$"conCheck"
-    # KDEmethod <- control$"KDEmethod"
+  dscaleThres <- control$"dscaleThres"
+  rscaleThres <- control$"rscaleThres"
+  conCheck <- control$"conCheck"
+  # KDEmethod <- control$"KDEmethod"
 
-    ## Setting warnings policy
+  ## Setting warnings policy
 
-    options(warn = warnVal)
+  options(warn = warnVal)
 
-    ## Handling 'start' argument
-    if (missing(start)) {selfStart <- TRUE} else {selfStart <- FALSE}
-
-
-    ## Handling 'fct' argument #######################
-    ## fct is a function, but it returns a list, when it is passed with parentheses
-    fctName <- deparse(substitute(fct))
-    if(substr(fctName, 1, 4) == "KDE(") fctName <- "KDE()"
-    if(substr(fctName, 1, 4) == "NPMLE(") fctName <- "NPMLE()"
-
-    if ( (!is.list(fct)) && (!is.function(fct)) ) {stop("No function or list given in argument 'fct'")}
-    # print(class(fct)); stop()
-    if (is.function(fct))
-    {
-      fct <- drc:::fct2list(fct, 2)
-    }
-
-    if (is.null(names(fct))) {fct$"fct" <- fct[[1]]; fct$"ssfct" <- fct[[2]]; fct$"names" <- fct[[3]]}
-
-    if (!is.function(fct$"fct"))
-    {
-        stop("First entry in list to 'fct' NOT a function")
-    } else {
-        drcFct <- fct$"fct"
-    }
-
-    if (is.null(fct$"ssfct")) {noSSfct <- TRUE} else {noSSfct <- FALSE}
-    if ((!is.function(fct$"ssfct")) && selfStart)
-    {
-        stop("Neither self starter function nor starting values provided")
-    } else {
-        ssfct <- fct$"ssfct"
-    }
-    if (is.null(fct$"names") || (!is.character(fct$"names")))
-    {
-      if(fctName == "NPMLE()"){
-        parNames <- NULL
-        numNames <- 1
-      } else stop("Parameter names (as vector a strings) are NOT supplied")
-    } else {
-        parNames <- fct$"names"
-        numNames <- length(parNames)
-    }
-
-    ## Checking whether or not first derivates are supplied
-    isDF <- is.function(fct$"deriv1")
-    if ( (useD) && (isDF) )
-    {
-        dfct1 <- fct$"deriv1"  # deriv1  # [[4]]
-#        drcDer2 <- fct$deriv2  # [[5]]
-    } else {
-        dfct1 <- NULL
-    }
-
-    ## Checking whether or not second derivates are supplied
-    if ( (useD) && (is.function(fct$"deriv2")) )
-    {
-        dfct2 <- fct$"deriv2"
-    } else {
-        dfct2 <- NULL
-    }
-
-    ## Storing call details
-    callDetail <- match.call()
-
-    ## Handling the 'formula', 'curveid' and 'data' arguments ##########
-    anName <- deparse(substitute(curveid))  # storing name for later use
-    if (length(anName) > 1) {anName <- anName[1]}  # to circumvent the behaviour of 'substitute' in do.call("multdrc", ...)
-    if (nchar(anName) < 1) {anName <- "1"}  # in case only one curve is analysed
-
-    mf <- match.call(expand.dots = FALSE)
-    nmf <- names(mf)
-    mnmf <- match(c("formula", "curveid", "data", "subset", "na.action", "weights"), nmf, 0)
-
-    mf[[1]] <- as.name("model.frame")
-
-    mf <- eval(mf[c(1, mnmf)], parent.frame())  #, globalenv())
-    mt <- attr(mf, "terms")
-    varNames <- names(mf)[c(2, 1)]  # Rigido x1 + y
-    varNames0 <- names(mf) # tutte le variabili
+  ## Handling 'start' argument
+  if (missing(start)) {selfStart <- TRUE} else {selfStart <- FALSE}
 
 
-    # only used once, but mf is overwritten later on
-    dose <- model.matrix(mt, mf)[,-c(1)]  # with no intercept
-    xDim <- ncol(as.matrix(dose))
-    resp <- model.response(mf, "numeric")
+  ## Handling 'fct' argument #######################
+  ## fct is a function, but it returns a list, when it is passed with parentheses
+  fctName <- deparse(substitute(fct))
+  if(substr(fctName, 1, 4) == "KDE(") fctName <- "KDE()"
+  if(substr(fctName, 1, 4) == "NPMLE(") fctName <- "NPMLE()"
 
-    if (is.null(resp))
-    {
-        # Non so a cosa serva.....
-        if (xDim > 1) {doseForResp <- dose[, 1]} else {doseForResp <- dose}
-        resp <- ppoints(doseForResp, 0.5)[order(doseForResp)]  # just one option
-        varNames[1] <- varNames[2]
-        varNames[2] <- "proportion"
-    }
+  if ( (!is.list(fct)) && (!is.function(fct)) ) {stop("No function or list given in argument 'fct'")}
+  if (is.function(fct))
+  {
+    fct <- drc:::fct2list(fct, 2)
+  }
 
-    origDose <- dose
-    origResp <- resp  # in case of transformation of the response
-    lenData <- length(resp)
-    numObs <- length(resp)
-    # print(origDose)
-    # print(origResp)
+  if (is.null(names(fct))) {fct$"fct" <- fct[[1]]; fct$"ssfct" <- fct[[2]]; fct$"names" <- fct[[3]]}
 
-    ## Retrieving weights
-    wVec <- model.weights(mf)
-    if (is.null(wVec))
-    {
-        wVec <- rep(1, numObs)
-    }
+  if (!is.function(fct$"fct"))
+  {
+      stop("First entry in list to 'fct' NOT a function")
+  } else {
+      drcFct <- fct$"fct"
+  }
 
-    ## Finding indices for missing values
-    missingIndices <- attr(mf, "na.action")
-    if (is.null(missingIndices)) {removeMI <- function(x){x}} else {removeMI <- function(x){x[-missingIndices,]}}
+  if (is.null(fct$"ssfct")) {noSSfct <- TRUE} else {noSSfct <- FALSE}
+  if ((!is.function(fct$"ssfct")) && selfStart)
+  {
+      stop("Neither self starter function nor starting values provided")
+  } else {
+      ssfct <- fct$"ssfct"
+  }
+  if (is.null(fct$"names") || (!is.character(fct$"names")))
+  {
+    if(fctName == "NPMLE()"){
+      parNames <- NULL
+      numNames <- 1
+    } else stop("Parameter names (as vector a strings) are NOT supplied")
+  } else {
+      parNames <- fct$"names"
+      numNames <- length(parNames)
+  }
 
-    ## Handling "curveid" argument
-    assayNo <- model.extract(mf, "curveid")
-    if (is.null(assayNo))  # in case not supplied
-    {
-        assayNo <- rep(1, numObs)
-    }
-    uniqueNames <- unique(assayNo)
-    colOrder <- order(uniqueNames)
-    uniqueNames <- as.character(uniqueNames)
+  ## Checking whether or not first derivates are supplied
+  isDF <- is.function(fct$"deriv1")
+  if ( (useD) && (isDF) )
+  {
+      dfct1 <- fct$"deriv1"  # deriv1  # [[4]]
+  } else {
+      dfct1 <- NULL
+  }
+
+  ## Checking whether or not second derivates are supplied
+  if ( (useD) && (is.function(fct$"deriv2")) )
+  {
+      dfct2 <- fct$"deriv2"
+  } else {
+      dfct2 <- NULL
+  }
+
+  ## Storing call details
+  callDetail <- match.call()
+
+  ## Handling the 'formula', 'curveid' and 'data' arguments ##########
+  anName <- deparse(substitute(curveid))  # storing name for later use MOVED UP
+  if (length(anName) > 1) {anName <- anName[1]}  # to circumvent the behaviour of 'substitute' in do.call("multdrc", ...)
+  if (nchar(anName) < 1) {anName <- "1"}  # in case only one curve is analysed
+
+  mf <- match.call(expand.dots = FALSE)
+  nmf <- names(mf)
+  mnmf <- match(c("formula", "curveid", "data", "subset", "na.action", "weights"), nmf, 0)
+
+  mf[[1]] <- as.name("model.frame")
+
+  mf <- eval(mf[c(1, mnmf)], parent.frame())  #, globalenv())
+  mt <- attr(mf, "terms")
+  varNames <- names(mf)[c(2, 1)]  # Rigido x1 + y
+  varNames0 <- names(mf) # tutte le variabili
 
 
-    ## Re-enumerating the levels in 'assayNo' and 'pmodels'
-    assayNoOld <- assayNo
+  # only used once, but mf is overwritten later on
+  dose <- model.matrix(mt, mf)[,-c(1)]  # with no intercept
+  xDim <- ncol(as.matrix(dose))
+  resp <- model.response(mf, "numeric")
 
-    ## Detecting control measurements
+  if (is.null(resp))
+  {
+      # Non so a cosa serva..... da togliere, credo
+      if (xDim > 1) {doseForResp <- dose[, 1]} else {doseForResp <- dose}
+      resp <- ppoints(doseForResp, 0.5)[order(doseForResp)]  # just one option
+      varNames[1] <- varNames[2]
+      varNames[2] <- "proportion"
+  }
 
-    ## Defining helper function
-    colConvert <- function(vec)
-    {
-        len <- length(vec)
-        assLev <- unique(vec)
+  origDose <- dose
+  origResp <- resp  # in case of transformation of the response
+  lenData <- length(resp)
+  numObs <- length(resp)
 
-        retVec <- rep(0,len)
-        j <- 1
-        for (i in 1:length(assLev)) {retVec[vec == assLev[i]] <- j; j <- j + 1}
+  ## Retrieving weights (useless...)
+  wVec <- model.weights(mf)
+  if (is.null(wVec))
+  {
+      wVec <- rep(1, numObs)
+  }
 
-        return(retVec)
-    }
-    assayNo <- colConvert(assayNoOld)
 
-    assayNames <- as.character(unique(assayNoOld))
-    numAss <- length(assayNames)
+  ## Finding indices for missing values
+  missingIndices <- attr(mf, "na.action")
+  if (is.null(missingIndices)) {removeMI <- function(x){x}} else {removeMI <- function(x){x[-missingIndices,]}}
 
-    if (xDim > 1) {tempDoseVec <- dose[, 1]} else {tempDoseVec <- dose}
+  ## Handling "curveid" argument
+  assayNo <- model.extract(mf, "curveid")
+  if (is.null(assayNo))  # in case not supplied
+  {
+      assayNo <- rep(1, numObs)
+  }
+  uniqueNames <- unique(assayNo)
+  colOrder <- order(uniqueNames)
+  uniqueNames <- as.character(uniqueNames)
 
-    uniqueDose <- lapply(tapply(tempDoseVec, assayNoOld, unique), length)
-    udNames <- names(uniqueDose[uniqueDose == 1])
-    # print(conCheck)
-    if ( (conCheck) && (length(udNames) > 0) )
-    {
-        cm <- udNames
-        if (!noMessage)
-        {
-            cat(paste("Control measurements detected for level: ", udNames, "\n", sep = ""))
+  ## Re-enumerating the levels in 'assayNo' and 'pmodels'
+  assayNoOld <- assayNo
 
-            if (separate)
-            {
-                stop("Having a common control when fitting separate models does not make sense!\n")
-            }
-        }
-        conInd <- assayNoOld %in% udNames
-        assayNo[conInd] <- (assayNo[!conInd])[1]
-        ciOrigIndex <- unique(assayNo)
-        ciOrigLength <- numAss
+  ## Separate fitting is only possible for parametric curves
+  if(fctName == "NPMLE()" || fctName == "KDE()") separate <- FALSE
 
-        ## Updating names, number of curves and the enumeration (starting from 1)
-        assayNames <- as.character(unique(assayNoOld[!conInd]))
-        numAss <- length(assayNames)
-        assayNo <- colConvert(assayNo)
-        cm <- NULL
-    } else {
-        cm <- NULL
-        ciOrigIndex <- unique(assayNo)
-        ciOrigLength <- numAss
-    }
+  ## Detecting control measurements
 
-    ## Pooling data from different curves
-    if ((separate) && (numAss < 2))
-    {
+  ## Defining helper function
+  colConvert <- function(vec)
+  {
+      len <- length(vec)
+      assLev <- unique(vec)
+
+      retVec <- rep(0,len)
+      j <- 1
+      for (i in 1:length(assLev)) {retVec[vec == assLev[i]] <- j; j <- j + 1}
+
+      return(retVec)
+  }
+
+  assayNo <- colConvert(assayNoOld)
+  assayNames <- as.character(unique(assayNoOld))
+  numAss <- length(assayNames)
+
+  if (xDim > 1) {tempDoseVec <- dose[, 1]} else {tempDoseVec <- dose}
+
+  uniqueDose <- lapply(tapply(tempDoseVec, assayNoOld, unique), length)
+  udNames <- names(uniqueDose[uniqueDose == 1])
+  # print(conCheck)
+  if ( (conCheck) && (length(udNames) > 0) ){
+
+      cm <- udNames
+      if (!noMessage)
+      {
+          cat(paste("Control measurements detected for level: ", udNames, "\n", sep = ""))
+
+          if (separate)
+          {
+              stop("Having a common control when fitting separate models does not make sense!\n")
+          }
+      }
+      conInd <- assayNoOld %in% udNames
+      assayNo[conInd] <- (assayNo[!conInd])[1]
+      ciOrigIndex <- unique(assayNo)
+      ciOrigLength <- numAss
+
+  ## Updating names, number of curves and the enumeration (starting from 1)
+  assayNames <- as.character(unique(assayNoOld[!conInd]))
+  numAss <- length(assayNames)
+  assayNo <- colConvert(assayNo)
+  cm <- NULL
+  } else {
+      cm <- NULL
+      ciOrigIndex <- unique(assayNo)
+      ciOrigLength <- numAss
+  }
+
+  ## Pooling data from different curves
+  if ((separate) && (numAss < 2))
+  {
 #        warning("Nothing to pool", call. = FALSE)
         warning("Only one level: separate = TRUE has no effect", call. = FALSE)
         separate <- FALSE
@@ -231,11 +223,24 @@ pshifts = NULL, varcov = NULL)
         warning("Separate fitting switched off", call. = FALSE)
         separate <- FALSE
     }
-#     if (separate)
-#     {
-# #        return(idrm(dose, resp, assayNo, wVec, fct, type))
-#         return(idrm(dose, resp, assayNoOld, wVec, fct, type, control))
-#     }
+
+    if (separate) {
+       # return(idrm(dose, resp, assayNo, wVec, fct, type))
+       # return(idrm(dose, resp, assayNoOld, wVec, fct, type, control))
+       # First of all, check whether separate = TRUE. In this case,
+       # call the internal function drmte_sep
+
+       returnList <- by(data, assayNoOld,
+                       function(g) drmte_sep(formula = formula,
+                               data = g, subset = subset,
+                               fct = fct, start = start, na.action = na.action,
+                               control = control,
+                               lowerl = lowerl, upperl = upperl)
+       )
+       returnList <- sepFit2obj(returnList)
+       return(returnList)
+  }
+
 
     ## Handling "pmodels" argument
     pmodelsList <- list()
@@ -512,19 +517,21 @@ pshifts = NULL, varcov = NULL)
         isfi <- is.finite(dose)  # removing infinite dose values
 
         ## Finding starting values for each curve
-
         for (i in 1:numAss)
         {
             indexT1 <- (assayNoNew == i)
 
             if (any(indexT1))
             {
+
               logVec <- indexT1
-                startMat[i, ] <- ssFct(doseresp[logVec, ])
+              # print(doseresp[logVec, ])
+              startMat[i, ] <- ssFct(doseresp[logVec, ])
+
             } else {
                  startMat[i, ] <- rep(NA, numNames)
             }
-            # print(startMat); stop()
+
             ## Identifying a dose response curve only consisting of control measurements
             if (sum(!is.na(startMat[i, ])) == 1)
             {
@@ -1126,7 +1133,6 @@ pshifts = NULL, varcov = NULL)
     {
       # For compatibility with 'drm()' returns the data for plotting
       # i.e., the end-point estimator
-
       if(xDim <= 2){
         dataListDose <- naiveEnd$time
         adVarNames <- NULL
@@ -1135,11 +1141,10 @@ pshifts = NULL, varcov = NULL)
         colnames(dataListDose) <- c("dose", varNames0[4:length(varNames0)])
         adVarNames <- c(varNames0[4:length(varNames0)])
       }
-
       dataList <- list(dose = dataListDose, origResp = naiveEnd$cdf,
                          weights = NA, curveid = naiveEnd$idVar,
                          plotid = naiveEnd$idVar, resp = naiveEnd$cdf,
-                  names = list(dName = varNames0[3], orName = varNames0[1],
+                  names = list(dName = varNames0[3:(3+xDim-2)], orName = varNames0[1],
                                wName = wName, cNames = anName,
                                rNames = unique(assayNoOld)),
                   adVarNames = adVarNames

@@ -59,8 +59,10 @@ fixed = c(NA, NA, NA), names = c("b", "d", "e"))
         derb <- as.numeric( attr(fctb(parmMat[, 1], parmMat[, 2], parmMat[, 3], dose), "gradient") )
         derd <- as.numeric( attr(fctd(parmMat[, 1], parmMat[, 2], parmMat[, 3], dose), "gradient") )
         dere <- as.numeric( attr(fcte(parmMat[, 1], parmMat[, 2], parmMat[, 3], dose), "gradient") )
-
-        cbind(derb, derd, dere)[, notFixed]
+        ret <- cbind(derb, derd, dere)[, notFixed]
+        # print(as.matrix(ret))
+        # cbind(derb, derd, dere)[, notFixed]
+        as.matrix(ret)
     }
 
     deriv2 <- NULL

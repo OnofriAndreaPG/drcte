@@ -35,7 +35,7 @@ quantileNPMLE <- Vectorize(function(start, end, count, probs,
   if (probs < 0 | probs > 1) stop("probs should be between 0 and 1.")
   L <- rep(start, count)
   R <- rep(end, count)
-  obj <- drcte:::getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
+  obj <- getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
   # print(obj)
   newStart <- obj$intmap[1,]
   newEnd <- obj$intmap[2,]

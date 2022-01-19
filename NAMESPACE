@@ -14,13 +14,15 @@ importFrom("survival", "strata")
 importFrom("grDevices", "gray")
 importFrom("lmtest", "coeftest")
 importFrom("dplyr", "select")
+importFrom("tidyr", "pivot_longer")
 importFrom("multcomp", "parm")
 # importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
 
 # Exports: general
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
        lognormal, KDE, KDE.fun, NPMLE,
-       compCDF, melt_te, decumulate_te, group_te, ungroup_te)
+       compCDF, melt_te, decumulate_te, group_te, ungroup_te,
+       jack.drcte, boot.drcte, plotData)
 
 # Hydro-time models
 # export(PmaxPsi1.fun, PmaxPsi1,
@@ -37,6 +39,7 @@ export(drmte, drmteControl, loglogistic, loglogisticSurv,
 
 ## S3 methods
 S3method(summary, drcte)
+S3method(summary, drcteList)
 S3method(plot, drcte)
 S3method(coef, drcte)
 S3method(predict, drcte)

@@ -37,11 +37,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
     # Selection of data to be plotted #########
     dataList <- object[["dataList"]]
-    # To display like survfit
-    # dose <- (obj$ICfit$icfit$startTime + obj$ICfit$icfit$endTime)/2 #dataList[["dose"]]
-    # resp <- obj$ICfit$icfit$cdf
-    # curveid <- obj$ICfit$icfit[,1]
-    # plotid <- obj$ICfit$icfit[,1]
 
     if(obj$fit$method == "NPMLE"){
       # To display the NPMLE (pkg. interval)
@@ -53,11 +48,10 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
       # To display naive end-point estimator (upd. 21/12/21)
       dose <- dataList[["dose"]]
       resp <- dataList[["origResp"]]
-      # curveid <- dataList[["curveid"]]
       curveid <- dataList$names$rNames[dataList$curveid]
-      # plotid <- dataList[["plotid"]]
       plotid <- dataList$names$rNames[dataList$plotid]
     }
+
     assayNoOld <- as.vector(curveid)
     uniAss <- unique(assayNoOld)
     numAss <- length(uniAss)
@@ -164,7 +158,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     resp <- resp[logVec]
     assayNoOld <- assayNoOld[logVec]
 
-
     # Helper functions
     barFct <- function(plotPoints){invisible(NULL)}
     ciFct <- function(level, ...){invisible(NULL)}
@@ -174,7 +167,6 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     # }
 
     ## Determining levels to be plotted
-#    uniAss <- unique(assayNoOld)
     if (is.null(level))
     {
         level <- uniAss
@@ -394,11 +386,21 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     ## Resetting graphical parameter
     par(las = 0)
 
-    # retData <- data.frame(dosePts, as.data.frame(plotMat))
-    # colnames(retData) <- c(doseName, dlNames[["cNames"]])
-    # invisible(retData)
+    if(obj$fit$method == "NPMLE"){
+      retData <- NULL
+    } else {
+      doseName <- dlNames[["dName"]]
+      if(length(dlNames[["rNames"]]) > 1){
+        respName <- as.character(dlNames[["rNames"]])
+      } else {
+        respName <- "Prop"
+      }
+      retData <- data.frame(dosePts, as.data.frame(plotMat))
+      colnames(retData) <- c(doseName, respName)
+    }
 
     } else if(obj$fit$method == "KDEfun2") {
+      # Da fare?
 #     object <- obj
 #     type <- match.arg(type)
 #
@@ -763,19 +765,35 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 #     retData <- data.frame(dosePts, as.data.frame(plotMat))
 #     colnames(retData) <- c(doseName, dlNames[["cNames"]])
 #     invisible(retData)
-    } else {
-    # case parametric
-    obj$dataList$plotid <- obj$dataList$names$rNames[obj$dataList$plotid]
-    class(obj) <- "drc"
-    plot(obj, log = "", add = add, level = level, type = type, broken = broken,
-          bp = bp, bcontrol = bcontrol, conName = conName, axes = axes, gridsize = gridsize,
-          xtsty = xtsty, xttrim = xttrim, xt = xt, xtlab = xtlab, xlab = xlab, xlim = xlim,
-          yt = yt, ytlab = ytlab, ylab = ylab, ylim = ylim, cex = cex,
-          cex.axis = cex.axis, col = col, lty = lty, pch = pch, legend = legend,
-          legendText = legendText, legendPos = legendPos, cex.legend = cex.legend,
-          normal = normal, normRef = normRef, confidence.level = confidence.level)
-  }
+  } else {
 
+  # case parametric
+
+  # Handling multiple covariates
+  dose <- obj$dataList[["dose"]]
+  if(!is.vector(dose)) doseDim <- length(dose[1,]) else doseDim <- 1
+  if(doseDim > 1) stop("Plotting is not possible with additional covariates (apart from time)")
+
+  obj$dataList$plotid <- obj$dataList$names$rNames[obj$dataList$plotid]
+  class(obj) <- "drc"
+  retData <- plot(obj, log = "", add = add, level = level, type = type, broken = broken,
+              bp = bp, bcontrol = bcontrol, conName = conName, axes = axes, gridsize = gridsize,
+              xtsty = xtsty, xttrim = xttrim, xt = xt, xtlab = xtlab, xlab = xlab, xlim = xlim,
+              yt = yt, ytlab = ytlab, ylab = ylab, ylim = ylim, cex = cex,
+              cex.axis = cex.axis, col = col, lty = lty, pch = pch, legend = legend,
+              legendText = legendText, legendPos = legendPos, cex.legend = cex.legend,
+              normal = normal, normRef = normRef, confidence.level = confidence.level)
+  dlNames <- obj$dataList$names
+  doseName <- dlNames[["dName"]]
+  if(length(dlNames[["rNames"]]) > 1){
+     respName <- as.character(dlNames[["rNames"]])
+   } else {
+     respName <- "Prop"
+   }
+   colnames(retData) <- c(doseName, respName)
+
+  }
+  return(invisible(retData))
 }
 
 
