@@ -96,6 +96,7 @@ pshifts = NULL, varcov = NULL){
   callDetail <- match.call()
 
   ## Handling the 'formula', 'curveid' and 'data' arguments ##########
+
   anName <- deparse(substitute(curveid))  # storing name for later use MOVED UP
   if (length(anName) > 1) {anName <- anName[1]}  # to circumvent the behaviour of 'substitute' in do.call("multdrc", ...)
   if (nchar(anName) < 1) {anName <- "1"}  # in case only one curve is analysed
@@ -116,6 +117,7 @@ pshifts = NULL, varcov = NULL){
   dose <- model.matrix(mt, mf)[,-c(1)]  # with no intercept
   xDim <- ncol(as.matrix(dose))
   resp <- model.response(mf, "numeric")
+
 
   if (is.null(resp))
   {
@@ -182,7 +184,7 @@ pshifts = NULL, varcov = NULL){
 
   uniqueDose <- lapply(tapply(tempDoseVec, assayNoOld, unique), length)
   udNames <- names(uniqueDose[uniqueDose == 1])
-  # print(conCheck)
+
   if ( (conCheck) && (length(udNames) > 0) ){
 
       cm <- udNames
@@ -201,14 +203,17 @@ pshifts = NULL, varcov = NULL){
       ciOrigLength <- numAss
 
   ## Updating names, number of curves and the enumeration (starting from 1)
+
   assayNames <- as.character(unique(assayNoOld[!conInd]))
   numAss <- length(assayNames)
   assayNo <- colConvert(assayNo)
   cm <- NULL
+
   } else {
-      cm <- NULL
-      ciOrigIndex <- unique(assayNo)
-      ciOrigLength <- numAss
+
+    cm <- NULL
+    ciOrigIndex <- unique(assayNo)
+    ciOrigLength <- numAss
   }
 
   ## Pooling data from different curves
@@ -223,6 +228,8 @@ pshifts = NULL, varcov = NULL){
         warning("Separate fitting switched off", call. = FALSE)
         separate <- FALSE
     }
+
+
 
     if (separate) {
        # return(idrm(dose, resp, assayNo, wVec, fct, type))
@@ -243,6 +250,7 @@ pshifts = NULL, varcov = NULL){
 
 
     ## Handling "pmodels" argument
+
     pmodelsList <- list()
     if (missing(pmodels))
     {
@@ -322,6 +330,7 @@ pshifts = NULL, varcov = NULL){
         }
     }
 
+
     ## Re-setting na.action
     options(na.action = "na.omit")  # the default
 
@@ -372,6 +381,7 @@ pshifts = NULL, varcov = NULL){
             pmodelsList2[[i]] <- as.matrix(pmodelsList[[i]])  # columns are kept
         }
     }
+
 
 
     ## Constructing vectors 'ncclVec' and 'parmPos' used below
@@ -453,13 +463,17 @@ pshifts = NULL, varcov = NULL){
         {
           # If necessary, several curves are combined by using different methods
           # based on the NPcdf function.
+
           df <- data.frame(x = dose, idVar = assayNo, y = origResp) # dataset non scalato
           nColdf <- length(df[1,])
 
           # Lista di lists
-          # print(nColdf)
+          # print(df[,nColdf])
+          # stop()
           NPcdfList <- list()
+
           NPcdfList <- plyr::dlply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf]))
+
           # naiveStart <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type4)
           # naiveEnd <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type3)
           # npmle <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type1plot)
@@ -672,6 +686,7 @@ pshifts = NULL, varcov = NULL){
     #                              doseScaling = doseScaling,
     #                              dist.type = ifelse(type == "negbin1", 1, 2))
     # }
+
     if (identical(type, "event"))
     {
       estMethod <- drmEMeventtime(dose, resp, multCurves2, doseScaling = doseScaling)
@@ -822,6 +837,7 @@ pshifts = NULL, varcov = NULL){
 
     if (!nlsFit$convergence) {return(nlsFit)}
 
+
     ## Manipulating after optimisation ###################
     if (identical(type, "event"))
     {
@@ -906,6 +922,7 @@ pshifts = NULL, varcov = NULL){
     nlsDF <- numObs - length(startVec)
 
     ## Constructing a plot function #########################
+
     if(fctName != "NPMLE()"){
     ## Picking parameter estimates for each curve. Does only work for factors not changing within a curve!
     if (!is.null(cm)) {iVec <- (1:numAss)[!(uniqueNames==cm)]} else {iVec <- 1:numAss}
@@ -989,6 +1006,7 @@ pshifts = NULL, varcov = NULL){
     ## 9/4/2019 - Andrea Onofri. The original routine did
     ## not appear to work with type = "event". Therefore I
     ## parted the two routines
+
 
     if (identical(type, "event"))
     {
@@ -1133,14 +1151,19 @@ pshifts = NULL, varcov = NULL){
     {
       # For compatibility with 'drm()' returns the data for plotting
       # i.e., the end-point estimator
+
       if(xDim <= 2){
         dataListDose <- naiveEnd$time
         adVarNames <- NULL
       } else {
-        dataListDose <- data.frame(naiveEnd$time, naiveEnd[,xDim - 2])
-        colnames(dataListDose) <- c("dose", varNames0[4:length(varNames0)])
-        adVarNames <- c(varNames0[4:length(varNames0)])
+        dataListDose <- data.frame(naiveEnd$time, naiveEnd[,1:(xDim - 2)])
+        # dataListDose <- data.frame(naiveEnd$time, naiveEnd[,xDim - 2]) # Corrected 14/02/2022
+        # colnames(dataListDose) <- c("dose", varNames0[4:length(varNames0)]) # Corrected 15/03/2022
+        colnames(dataListDose) <- c("dose", varNames0[4:(4 + xDim - 2 - 1)])
+        # adVarNames <- c(varNames0[4:length(varNames0)])
+        adVarNames <- c(varNames0[4:(4 + xDim - 2 - 1)])
       }
+
       dataList <- list(dose = dataListDose, origResp = naiveEnd$cdf,
                          weights = NA, curveid = naiveEnd$idVar,
                          plotid = naiveEnd$idVar, resp = naiveEnd$cdf,
@@ -1150,6 +1173,7 @@ pshifts = NULL, varcov = NULL){
                   adVarNames = adVarNames
                   ) #rName = levels(factor(assayNoOld))
 
+
       if(length(varNames0) > 3) {
         for(i in 4:length(varNames0)){
           names(naiveStart)[i - 3] <- varNames0[i]
@@ -1158,19 +1182,20 @@ pshifts = NULL, varcov = NULL){
           names(icFit)[i - 3] <- varNames0[i]
         }}
       # This is new and returns several CDF estimators
-      # print(dataList$names$cNames)
-      naiveStart[,1] <- dataList$names$rNames[naiveStart[,1]]; names(naiveStart)[1] <- dataList$names$cNames
-      naiveEnd[,1] <- dataList$names$rNames[naiveEnd[,1]]; names(naiveEnd)[1] <- dataList$names$cNames
-      npmle[,1] <- dataList$names$rNames[npmle[,1]]; names(npmle)[1] <- dataList$names$cNames
-      icFit[,1] <- dataList$names$rNames[icFit[,1]]; names(icFit)[1] <- dataList$names$cNames
-
+      # The first commands take the numerical 'curveid' and transform it into
+      # the corresponding namings for id levels
+      colVal <- xDim - 2 + 1
+      naiveStart[,colVal] <- dataList$names$rNames[naiveStart[,colVal]]; names(naiveStart)[colVal] <- dataList$names$cNames
+      naiveEnd[,colVal] <- dataList$names$rNames[naiveEnd[,colVal]]; names(naiveEnd)[colVal] <- dataList$names$cNames
+      npmle[,colVal] <- dataList$names$rNames[npmle[,colVal]]; names(npmle)[colVal] <- dataList$names$cNames
+      icFit[,colVal] <- dataList$names$rNames[icFit[,colVal]]; names(icFit)[colVal] <- dataList$names$cNames
       dataList2 <- list(naiveStart=naiveStart, naiveEnd=naiveEnd, npmle = npmle, icfit = icFit)
-
     }
 
 
     ## What about naming the vector of weights?
     # print(dataSet); print("OK"); stop()
+
     if(fctName == "KDE()" | fctName == "NPMLE()") plotFct <- plotFctList
     # if(fctName == "KDE()" | fctName == "NPMLE()") callDetail$fct <- fctName
     ## Returning the fit ######

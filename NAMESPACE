@@ -22,7 +22,7 @@ importFrom("multcomp", "parm")
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
        lognormal, KDE, KDE.fun, NPMLE,
        compCDF, melt_te, decumulate_te, group_te, ungroup_te,
-       jack.drcte, boot.drcte, plotData)
+       plotData) # jack.drcte, boot.drcte
 
 # Hydro-time models
 # export(PmaxPsi1.fun, PmaxPsi1,

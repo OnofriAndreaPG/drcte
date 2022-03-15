@@ -1,5 +1,7 @@
 summary.drcte <- function(object,
-                          robust = FALSE, units = NULL, ...)
+                          robust = FALSE, units = NULL,
+                          type = c("sandwich", "bootstrap", "jackknife"),
+                          ...)
 {
   if(object$fit$method == "KDE"){
     parVec <- as.vector(coef(object))
@@ -42,6 +44,17 @@ summary.drcte <- function(object,
     "df.residual", "cov.unscaled", "text", "noParm", "rseMat")
     sumObj$robust <- "no"
     } else {
+
+    type <- match.arg(type)
+    if(type == "bootstrap"){
+      stop("Bootstrap standard errors are not yet implemented.")
+      # tab <- boot.drcte(object, units = units)
+      # return(tab)
+    } else if (type == "jackknife"){
+      stop("Jackknife standard errors are not yet implemented.")
+      # tab <- jack.drcte(object, units = units)
+      # return(tab)
+    }
 
     if(!is.null(units)){
       vcovNew <- vcovCL(object, cluster = units)

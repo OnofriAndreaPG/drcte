@@ -1,8 +1,10 @@
 # Robust standard errors for model parameters
 # fully iterated jackknife - ungrouped/grouped version
+# Only grouped, so far
 # v.1.1 - 29/12/2021
 
-jack.drcte <- function(obj, units) {
+jack.drcte <- function(obj, units = NULL) {
+  if(is.null(units)) stop("Only the grouped jackknife is implemented")
   cluster <- factor(units)
   data <- obj$origData
   estim <- coef(obj)

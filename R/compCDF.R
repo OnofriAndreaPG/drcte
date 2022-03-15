@@ -1,6 +1,6 @@
 compCDF <- function(obj, scores = c("wmw", "logrank1","logrank2"),
                     B = 199, type = c("naive", "permutation"),
-                    units = NULL){
+                    units = NULL, upperl, lowerl){
 
   if(!any(class(obj) == "drcte")) {
      stop("Method works only with 'drcte' objects")
@@ -36,7 +36,10 @@ compCDFpar <- function(obj,
   args <- getCall(obj)
   call <- args[names(args) != "curveid" & names(args) != "pmodels" &
         names(args) != "upperl" & names(args) != "lowerl"]
+
   obj2 <- eval(call, parent.frame())
+  d <- coef(obj2)[2]
+  if(d > 1 | d < 0) obj2 <- update(obj2, upperl = c(NA, 1, NA))
 
   # Naive lrt (wrong in two ways!)
   LRT <- as.numeric(2 * (logLik(obj) - logLik(obj2)))
@@ -71,6 +74,7 @@ compCDFpar <- function(obj,
     pout$pvalb <- NULL
     pout$U <- NULL
     pout$N <- NULL
+
   } else {
     # permutation approach
     LRTb <- rep(NA, B)
@@ -100,7 +104,6 @@ compCDFpar <- function(obj,
     } else {
       # Group-based permutation
       cluster <- units
-
       df <- data.frame(id = 1:length(cluster),
                    obj$data,
                    cluster = cluster)

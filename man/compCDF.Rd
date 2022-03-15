@@ -24,7 +24,7 @@ Number of permutations for permutation tests
 For parametric models, comparisons are based on a Likelihood Ratio Test (LRT). The argument type specifies whether P-levels should be calculated by using a 'naive' chi-square approximation, or a 'permutation' approach. It defailts to 'naive' and it is neglected for NPMLE and KDE fits, which always use the permutation approach.
 }
 \item{units}{
-A vector for the clustering units (e.g. Petri dishes or other containers for seed germination/emergence assays). When it is given, the permutation approach is performed at the units level and not at the individuals level.
+A vector for the clustering units (e.g. Petri dishes or other containers for seed germination/emergence assays). When type = 'permutation' and 'units' is given, the permutation approach is performed at the units level and not at the individuals level.
 }
 }
 \details{
