@@ -1,34 +1,12 @@
-drmte_sep_p <- function(formula, curveid, data, subset, fct,
+drmte_sep <- function(formula, curveid, data, subset, fct,
                       start, na.action, control, lowerl,
                       upperl) {
   # We have two possibilities for separate fitting: one is for
   # models with a 'cured' fraction and the other one for all other models
   # Updated: 17/03/22
-  fctName <- deparse(substitute(fct))
-  grepl(fctName, "LL.3(", fixed=TRUE)
-  if(grepl(fctName, "LL.3(", fixed=TRUE) |
-     grepl(fctName, "L.3(", fixed=TRUE) |
-     grepl(fctName, "LN.3(", fixed=TRUE) |
-     grepl(fctName, "W1.3(", fixed=TRUE) |
-     grepl(fctName, "W2.3(", fixed=TRUE) |
-     grepl(fctName, "G.3(", fixed=TRUE) ){
-    result <- drmte_sep1(formula = formula,
-                               data = data, subset = subset,
-                               fct = fct, start = start, na.action = na.action,
-                               control = control,
-                               lowerl = lowerl, upperl = upperl)
-    return(result)
-  } else {
-    result <- drmte_sep2(formula = formula,
-                               data = data, subset = subset,
-                               fct = fct, start = start, na.action = na.action,
-                               control = control,
-                               lowerl = lowerl, upperl = upperl)
-    return(result)
-  }
-  }
+}
 
-drmte_sep <- function(formula, data, subset, fct,
+drmte_sep1 <- function(formula, data, subset, fct,
                       start, na.action, control, lowerl,
                       upperl) {
   # This function fits a time-to-event model. If the attempt fails,
@@ -88,20 +66,21 @@ drmte_sep2 <- function(formula, data, subset, fct,
   # is made. Simply, the model is fit the way it is and, if no convergence is
   # obtained, an error message is returned
   # Updated: 17/03/22
-  callDetail <- match.call()
 
-  fitMod <-drmte(formula = formula, fct = fct,
-                 data = data, subset = subset) #,
-                               # start = start, na.action = na.action,
-                               # control = control,
-                               # lowerl = lowerl, upperl = upperl)
-  print(fitMod)
+  # print(subset)
+  fitMod <- try( drmte(formula = formula, fct = fct,
+                 data = data,
+                 na.action = na.action,
+                 control = control,
+                 lowerl = lowerl, upperl = upperl), silent = T)
+  test <- try(summary(fitMod))
+  # if(data$temp == 4) class(fitMod) <- "try-error"
   # Preparing and returning the results
-  if(fitMod != "try-error"){
-    result <- fitMod
-  } else {
+  if(any(class(fitMod) == "try-error") | any(class(test) == "try-error")){
     result <- "Model could not be fitted for this levels"
-  }
+    } else {
+      result <- fitMod
+      }
 }
 
 "EV.fr" <- function(names = c("d"))
@@ -158,11 +137,16 @@ drmte_sep2 <- function(formula, data, subset, fct,
 "sepFit2obj" <- function(fitList){
   # This is a helper function, that takes a list of drcte objects
   # and prepares a unique 'drcte' object to be returned.
+  sel <- unlist(lapply(fitList, function(el) class(el)[1])) != "character"
+  fitList <- fitList[sel]
+  # print(fitList)
+
   lenList <- length(fitList)
   oneFunction <- lenList==1
 
   uniCur <- names(fitList)
   numCur <- lenList
+
   numPar <- as.numeric(sapply(fitList, function(el) length(coef(el))))
 
   retList <- list()
@@ -188,10 +172,11 @@ drmte_sep2 <- function(formula, data, subset, fct,
 
   # dataList
   tdataList <- lapply(fitList, function(el) el$"dataList"$dose)
-  retList$"dataList"$dose <- as.numeric(do.call(c, tdataList))
+  retList$"dataList"$dose <- do.call(rbind, tdataList)
   tdataList <- lapply(fitList, function(el) el$"dataList"$origResp)
   retList$"dataList"$origResp <- as.numeric(do.call(c, tdataList))
   retList$"dataList"$weights <- NULL
+
   tdataList <- lapply(fitList, function(el) el$"dataList"$curveid)
   tmp <- mapply(function(i) rep(i, length(tdataList[[i]])), 1:numCur, SIMPLIFY = F)
   retList$"dataList"$curveid <- as.numeric(do.call(c, tmp))

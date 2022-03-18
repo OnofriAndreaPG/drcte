@@ -29,7 +29,6 @@ pshifts = NULL, varcov = NULL){
   # KDEmethod <- control$"KDEmethod"
 
   ## Setting warnings policy
-
   options(warn = warnVal)
 
   ## Handling 'start' argument
@@ -236,22 +235,28 @@ pshifts = NULL, varcov = NULL){
        # return(idrm(dose, resp, assayNoOld, wVec, fct, type, control))
        # First of all, check whether separate = TRUE. In this case,
        # call the internal function drmte_sep
+      if(grepl(fctName, "L.3(", fixed=TRUE) |
+         grepl(fctName, "LN.3(", fixed=TRUE) |
+         grepl(fctName, "W1.3(", fixed=TRUE) |
+         grepl(fctName, "W2.3(", fixed=TRUE) |
+         grepl(fctName, "G.3(", fixed=TRUE) ){
+         returnList <- by(data, assayNoOld,
+                         function(g) drmte_sep1(formula = formula,
+                                               data = g, subset = subset,
+                                               fct = fct, start = start, na.action = na.action,
+                                               control = control,
+                                               lowerl = lowerl, upperl = upperl))
+      } else {
+        returnList <- by(data, assayNoOld,
+                         function(g) drmte_sep2(formula = formula,
+                                                data = g, subset = subset,
+                                                fct = fct, start = start, na.action = na.action,
+                                                control = control,
+                                                lowerl = lowerl, upperl = upperl))
 
-       # returnList <- by(data, assayNoOld,
-       #                 function(g) drmte_sep(formula = formula,
-       #                         data = g, subset = subset,
-       #                         fct = fct, start = start, na.action = na.action,
-       #                         control = control,
-       #                         lowerl = lowerl, upperl = upperl))
-       # print(assayNoOld)
-       returnList <- by(data, assayNoOld,
-                       function(g) drmte(formula = formula,
-                               data = g, subset = subset,
-                               fct = fct, start = start, na.action = na.action,
-                               control = control,
-                               lowerl = lowerl, upperl = upperl)
-       )
-       print(returnList)
+        }
+       # print(returnList)
+       # stop("OK")
        returnList <- sepFit2obj(returnList)
        return(returnList)
   }

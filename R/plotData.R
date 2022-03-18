@@ -104,11 +104,11 @@
      ## addVars <- as.numeric(apply(as.data.frame(addVars), 2, function(col) unique(as.character(col))))
      # Corrected on 16/3/2022
      addVars <- apply(as.data.frame(addVars), 2, function(col) as.numeric(unique(as.character(col))), simplify = F)
-     # print(addVars)
-     num <- length(addVars)
+     # print(names(addVars))
+     numAdd <- doseDim - 1
      allVars <- list(time = dosePts)
-     for(i in 1:num) allVars[[i + 1]] <- addVars[[i]]
-     # print(allVars)
+     for(i in 1:numAdd) allVars[[i + 1]] <- addVars[[i]]
+     names(allVars)[2:(2 + numAdd - 1)] <- names(addVars)
      dosePts <- expand.grid(allVars)
      }
   if(method == "Parametric"){
@@ -132,12 +132,12 @@
      retData <- data.frame(dosePts, as.data.frame(plotMat))
      colnames(retData) <- c(doseName, respName)
    }
-   # print(retData)
+
    # Melt plot data
   if(method != "NPMLE" && numAss > 1){
     retData <- tidyr::pivot_longer(retData, names_to = dlNames$cNames,
                           values_to = "CDF",
-                          cols = c(2:length(retData[1,])))
+                          cols = c((doseDim + 1):length(retData[1,])))
     retData <- as.data.frame(retData)
   }
 
