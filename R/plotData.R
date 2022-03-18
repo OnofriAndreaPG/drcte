@@ -100,8 +100,16 @@
      dosePts <- seq(xLimits[1], xLimits[2], length = gridsize)
      } else {
      dosePts <- seq(xLimits[1], xLimits[2], length = gridsize)
-     addVars <- as.numeric(apply(as.data.frame(addVars), 2, function(col) unique(as.character(col))))
-     dosePts <- expand.grid(dosePts, addVars)
+
+     ## addVars <- as.numeric(apply(as.data.frame(addVars), 2, function(col) unique(as.character(col))))
+     # Corrected on 16/3/2022
+     addVars <- apply(as.data.frame(addVars), 2, function(col) as.numeric(unique(as.character(col))), simplify = F)
+     # print(addVars)
+     num <- length(addVars)
+     allVars <- list(time = dosePts)
+     for(i in 1:num) allVars[[i + 1]] <- addVars[[i]]
+     # print(allVars)
+     dosePts <- expand.grid(allVars)
      }
   if(method == "Parametric"){
     plotMat <- plotFct(dosePts)

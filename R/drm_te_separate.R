@@ -1,4 +1,34 @@
-drmte_sep <- function(formula, curveid, data, subset, fct,
+drmte_sep_p <- function(formula, curveid, data, subset, fct,
+                      start, na.action, control, lowerl,
+                      upperl) {
+  # We have two possibilities for separate fitting: one is for
+  # models with a 'cured' fraction and the other one for all other models
+  # Updated: 17/03/22
+  fctName <- deparse(substitute(fct))
+  grepl(fctName, "LL.3(", fixed=TRUE)
+  if(grepl(fctName, "LL.3(", fixed=TRUE) |
+     grepl(fctName, "L.3(", fixed=TRUE) |
+     grepl(fctName, "LN.3(", fixed=TRUE) |
+     grepl(fctName, "W1.3(", fixed=TRUE) |
+     grepl(fctName, "W2.3(", fixed=TRUE) |
+     grepl(fctName, "G.3(", fixed=TRUE) ){
+    result <- drmte_sep1(formula = formula,
+                               data = data, subset = subset,
+                               fct = fct, start = start, na.action = na.action,
+                               control = control,
+                               lowerl = lowerl, upperl = upperl)
+    return(result)
+  } else {
+    result <- drmte_sep2(formula = formula,
+                               data = data, subset = subset,
+                               fct = fct, start = start, na.action = na.action,
+                               control = control,
+                               lowerl = lowerl, upperl = upperl)
+    return(result)
+  }
+  }
+
+drmte_sep <- function(formula, data, subset, fct,
                       start, na.action, control, lowerl,
                       upperl) {
   # This function fits a time-to-event model. If the attempt fails,
@@ -48,6 +78,30 @@ drmte_sep <- function(formula, curveid, data, subset, fct,
     if(result$fit$hessian == 0) result$fit$hessian <- NaN
   }
   result
+}
+
+drmte_sep2 <- function(formula, data, subset, fct,
+                      start, na.action, control, lowerl,
+                      upperl) {
+  # This function fits a time-to-event model separately for each curveid
+  # level. It is similar to drmte_sep, but no attempt to fit a simpler model
+  # is made. Simply, the model is fit the way it is and, if no convergence is
+  # obtained, an error message is returned
+  # Updated: 17/03/22
+  callDetail <- match.call()
+
+  fitMod <-drmte(formula = formula, fct = fct,
+                 data = data, subset = subset) #,
+                               # start = start, na.action = na.action,
+                               # control = control,
+                               # lowerl = lowerl, upperl = upperl)
+  print(fitMod)
+  # Preparing and returning the results
+  if(fitMod != "try-error"){
+    result <- fitMod
+  } else {
+    result <- "Model could not be fitted for this levels"
+  }
 }
 
 "EV.fr" <- function(names = c("d"))

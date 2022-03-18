@@ -4,14 +4,14 @@
 \title{Plotting fitted time-to-event models}
 
 \description{
-  \code{plot} displays fitted curves and observations in the same plot window,
-  distinguishing between curves by different plot symbols and line types.
-}
+  \code{plot} displays fitted curves and observations in the same plot window, distinguishing between curves by different plot symbols and line types.}
 
 \usage{
 
   \method{plot}{drcte}(x, ..., add = FALSE, level = NULL, shading = TRUE,
-  type = c("average", "all", "bars", "none", "obs", "confidence"),
+  type = c("all"),
+  npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
+  npmle.points = F, kde.points = T,
   broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE,
   gridsize = 100, log = "", xtsty, xttrim = TRUE,
   xt = NULL, xtlab = NULL, xlab, xlim,
@@ -22,16 +22,15 @@
 }
 
 \arguments{
-  \item{x}{an object of class 'drc'.}
+  \item{x}{an object of class 'drcte'.}
   \item{...}{additional graphical arguments. For instance, use \code{lwd=2} or \code{lwd=3} to increase the width of plot symbols.}
   \item{add}{logical. If TRUE then add to already existing plot.}
   \item{level}{vector of character strings. To plot only the curves specified by their identification number.}
   \item{shading}{For NPMLE, it prints shading on the graphs for the points where the likelihood value is not unique. Defaults to TRUE}
-  \item{type}{a character string specifying how to plot the data. There are currently
-  5 options:  "average" (averages and fitted curve(s); default),
-  "none" (only the fitted curve(s)), "obs" (only the data points),
-  "all" (all data points and fitted curve(s)),
-  "bars" (averages and fitted curve(s) with model-based standard errors (see Details)), and "confidence" (confidence bands for fitted curve(s)). For nonparametric curves, }
+  \item{type}{it has been left for analogy with the plot method for 'drc' objects, but it is neglected in the case of 'drcte' objects.}
+  \item{npmle.type}{the NPMLE of the cumulative density function is only specified at the end of each inspection interval, while it is not unique within each interval. This argument specifies how the CDF increases within each interval: possible values are "interpolation" (it is assumed that the CDF increases progressively), "left" (the CDF increases at the beginning of each interval), "right" (the CDF increases at the end of each interval; it is very common in survival analysis) and "midpoint" (the CDF increases in the middle of each interval; it is very common in survival analysis). This argument is neglected with parametric and KDE fits.}
+  \item{npmle.points}{If F, with NPMLE fits, plotting the NPMLEs at the end of each interval as symbols is suppressed. Not implemented, yet.}
+  \item{kde.points}{If F, with KDE fits, plotting the NPMLE at the end of each interval is suppressed}
   \item{broken}{logical. If TRUE the x axis is broken provided this axis is logarithmic
   (using functionality in the CRAN package 'plotrix').}
   \item{bp}{numeric value specifying the break point below which the dose is zero (the amount of stretching on
@@ -81,38 +80,14 @@
   \item{confidence.level}{confidence level for error bars. Defaults to 0.95.}
 }
 
-\details{
-  The use of \code{xlim} allows changing the range of the x axis, extrapolating the fitted dose-response curves.
-  Note that changing the range on the x axis may also entail a change of the range on the y axis. Sometimes
-  it may be useful to extend the upper limit on the y axis (using \code{ylim}) in order to fit a legend into
-  the plot.
-
-  See \code{\link{colors}} for the available colours.
-
-  Suitable labels are automatically provided.
-
-  The arguments \code{broken} and \code{bcontrol} rely on the function
-  \code{link{axis.break}} with arguments
-  \code{style} and \code{brw} in the package \code{plotrix}.
-
-  The model-based standard errors used for the error bars are calculated
-  as the fitted value plus/minus the estimated error times the
-  1-(alpha/2) quantile in the t distribution with degrees of freedom
-  equal to the residual degrees of freedom for the model (or using a
-  standard normal distribution in case of binomial and poisson data),
-  where alpha=1-confidence.level. The standard errors are obtained using
-  the predict method with the arguments interval = "confidence"
-  and level=confidence.level.
+\details{The plot method for 'drcte' objects inherits from the plot method for 'drc' objects and adds functionalities for nonparametric time-to-event fits. For parametric time-to-event models, the fitted curve is presented, together with symbols, corresponding to the NPMLE estimator of the cumulative distribution function at the end of each observation interval. For NPMLE fits, the cumulative CDF at the end of each interval is presented and the way that the density increases during the interval is specified through the argument 'npmle.type'. For KDE fits, the cumulative density is presented as a line, while the observed NPMLE of the CDF at the end of each interval can be either presented as symbols or suppressed. For all other information, please consult ?plot.drc. This method does not work for models with environmental covariates.
 }
 
 \value{
-  An invisible data frame with the values used for plotting the fitted curves. The first column contains the dose values,
-and the following columns (one for each curve) contain the fitted response values.
+An invisible data frame with the values used for plotting the fitted curves. The first column contains the dose values, and the following columns (one for each curve) contain the fitted response values.
 }
 
-\author{
-Christian Ritz and Jens C. Streibig. Contributions from Xiaoyan Wang and Greg Warnes.
-}
+\author{Andrea Onofri}
 
 \references{
   Weimer, M., Jiang, X., Ponta, O., Stanzel, S., Freyberger, A., Kopp-Schneider, A. (2012)

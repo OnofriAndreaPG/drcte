@@ -40,7 +40,7 @@ pshifts = NULL, varcov = NULL){
   ## fct is a function, but it returns a list, when it is passed with parentheses
   fctName <- deparse(substitute(fct))
   if(substr(fctName, 1, 4) == "KDE(") fctName <- "KDE()"
-  if(substr(fctName, 1, 4) == "NPMLE(") fctName <- "NPMLE()"
+  if(substr(fctName, 1, 6) == "NPMLE(") fctName <- "NPMLE()"
 
   if ( (!is.list(fct)) && (!is.function(fct)) ) {stop("No function or list given in argument 'fct'")}
   if (is.function(fct))
@@ -237,13 +237,21 @@ pshifts = NULL, varcov = NULL){
        # First of all, check whether separate = TRUE. In this case,
        # call the internal function drmte_sep
 
+       # returnList <- by(data, assayNoOld,
+       #                 function(g) drmte_sep(formula = formula,
+       #                         data = g, subset = subset,
+       #                         fct = fct, start = start, na.action = na.action,
+       #                         control = control,
+       #                         lowerl = lowerl, upperl = upperl))
+       # print(assayNoOld)
        returnList <- by(data, assayNoOld,
-                       function(g) drmte_sep(formula = formula,
+                       function(g) drmte(formula = formula,
                                data = g, subset = subset,
                                fct = fct, start = start, na.action = na.action,
                                control = control,
                                lowerl = lowerl, upperl = upperl)
        )
+       print(returnList)
        returnList <- sepFit2obj(returnList)
        return(returnList)
   }
