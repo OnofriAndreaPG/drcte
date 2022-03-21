@@ -13,6 +13,7 @@ drmte_sep1 <- function(formula, data, subset, fct,
   # a simpler model is fitted, where only the fraction of individuals
   # with event is estimated. assuming no time course of events
   # Updated: 12/01/22
+
   fr <- model.frame(formula, data)
   timeBef <- model.matrix(fr, data)[,2]
   timeAf <- model.matrix(fr, data)[,3]
@@ -30,11 +31,22 @@ drmte_sep1 <- function(formula, data, subset, fct,
   pCum <- cumsum(tapply(nSeeds[is.finite(timeAf)], timeAf[is.finite(timeAf)], sum))/nTot
   tpCum <- as.numeric(names(pCum))
 
+  # print("OK1")
   # Fitting models
   cureMod <- try( drmte(nSeeds ~ timeBef + timeAf, fct = fct), silent = T)
+  # print("OK2")
   fct$fixed <- c(Inf, NA, 1)
   fct$noParm <- 1
-  cureMod2 <- drm(pCum ~ tpCum, fct = EV.fr(), start = mean(pCum))
+
+  # cureMod2 <- try( drm(pCum ~ tpCum, fct = EV.fr(), start = mean(pCum)), silent = T)
+  # if(class(cureMod2) == "try-error") print("OK")
+  cureMod2 <- lm(pCum ~ 1)
+  cureMod2 <- as.drc(cureMod2)
+  cureMod2$parNames[[1]] <- "d:(intercept)"
+  cureMod2$parNames[[2]] <- "d"
+  cureMod2$parNames[[3]] <- "(intercept)"
+  cureMod2$dataList$dose <- unique(timeAf[is.finite(timeAf)])
+  cureMod2$fct <- linear.mean()
 
   # Deciding which model is to be used
   if( all(class(cureMod) != "try-error")) {
@@ -42,7 +54,7 @@ drmte_sep1 <- function(formula, data, subset, fct,
     if(any(class(p) == "try-error")) {
       class(cureMod) <- "try-error"
     } else if (coef(cureMod)[2] > 1 | coef(cureMod)[2] < 0) {
-      cureMod <- drmte(nSeeds ~ timeBef + timeAf, fct = fct, upperl = c(NA, 1, NA))
+      cureMod <- try (drmte(nSeeds ~ timeBef + timeAf, fct = fct, upperl = c(NA, 1, NA)), silent = T)
     }
     }
 
@@ -50,11 +62,13 @@ drmte_sep1 <- function(formula, data, subset, fct,
   if(all(class(cureMod) != "try-error")){
     result <- cureMod
   } else {
+
     result <- cureMod2
     result$data <- data.frame(timeBef, timeAf, nSeeds,
                               curveid = 1, orig.curveid = 1, weights = 1)
     if(result$fit$hessian == 0) result$fit$hessian <- NaN
   }
+
   result
 }
 
@@ -83,7 +97,8 @@ drmte_sep2 <- function(formula, data, subset, fct,
       }
 }
 
-"EV.fr" <- function(names = c("d"))
+
+"linear.mean" <- function(names = c("d"))
 {
   ## This is an helper function, that specifies a model where only
   ## the fraction of individuals with event is estimated,
@@ -96,10 +111,9 @@ drmte_sep2 <- function(formula, data, subset, fct,
   ## Defining the function
   fct <- function(x, parm)
   {
-    parmMat <- matrix(parmVec, nrow(parm), numParm, byrow = TRUE)
-
+    parmMat <- matrix(parm, nrow(parm), numParm, byrow = TRUE)
     d <- parmMat[, 1]
-    d
+    return(x*0 + d)
   }
 
   ## Defining self starter function
@@ -116,18 +130,28 @@ drmte_sep2 <- function(formula, data, subset, fct,
 
   ## Defining derivatives
   deriv1 <- function(x, parm){
-    d1 <- 0
+    d1 <- x*0
     cbind(d1)
   }
   ## Defining the ED function
+  edfct <- function(parm, respl = 50, reference, type, ...){
+    parmVec[notFixed] <- parm
+    EDp <- Inf
+    return(list(EDp, NA))
+  }
 
   ## Defining the inverse function
 
   ## Defining descriptive text
   text <- "Horizontal line (mean model)"
 
+  ## name
+  name <- "linear.mean"
+
   ## Returning the function with self starter and names
-  returnList <- list(fct = fct, ssfct = ssfct, deriv1 = deriv1, names = pnames, text = text)
+  returnList <- list(fct = fct, ssfct = ssfct,
+                     deriv1 = deriv1, names = pnames,
+                     text = text, name = name, edfct = edfct)
 
   class(returnList) <- "drcMean"
   invisible(returnList)
@@ -172,7 +196,7 @@ drmte_sep2 <- function(formula, data, subset, fct,
 
   # dataList
   tdataList <- lapply(fitList, function(el) el$"dataList"$dose)
-  retList$"dataList"$dose <- do.call(rbind, tdataList)
+  retList$"dataList"$dose <- do.call(c, tdataList)
   tdataList <- lapply(fitList, function(el) el$"dataList"$origResp)
   retList$"dataList"$origResp <- as.numeric(do.call(c, tdataList))
   retList$"dataList"$weights <- NULL
@@ -194,7 +218,7 @@ drmte_sep2 <- function(formula, data, subset, fct,
   retList$"fit"$method <- "Parametric"
   retList$"parmMat" <- NULL
 
-  plotFct <- function(x) {matrix(unlist(lapply(fitList, function(y)y$"curve"[[1]](x))), ncol = numCur)}
+  plotFct <- function(x) {matrix(unlist(lapply(fitList, function(y) y$"curve"[[1]](x))), ncol = numCur)}
   retList$"curve" <- list(plotFct, fitList[[1]]$"curve"[[2]])
 
   # retList$"indexMat" <- matrix(c(1:(numCur * numPar)), numPar, numCur)
@@ -203,9 +227,5 @@ drmte_sep2 <- function(formula, data, subset, fct,
   names(coefVec) <- aVec
   retList$"coefficients" <- coefVec
 
-  # retList$"df.residual" <- sum(unlist(lapply(fitList, function(x){x$"df.residual"})))
-  # retList$"minval" <- sum(unlist(lapply(fitList, function(x){x$"fit"$"value"})))
-
-  class(retList) <- c("drcteList", "drcte", "drc")
   return(retList)
 }

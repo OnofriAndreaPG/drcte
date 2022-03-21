@@ -235,11 +235,11 @@ pshifts = NULL, varcov = NULL){
        # return(idrm(dose, resp, assayNoOld, wVec, fct, type, control))
        # First of all, check whether separate = TRUE. In this case,
        # call the internal function drmte_sep
-      if(grepl(fctName, "L.3(", fixed=TRUE) |
-         grepl(fctName, "LN.3(", fixed=TRUE) |
-         grepl(fctName, "W1.3(", fixed=TRUE) |
-         grepl(fctName, "W2.3(", fixed=TRUE) |
-         grepl(fctName, "G.3(", fixed=TRUE) ){
+      if(grepl("L.3(",  fctName, fixed=TRUE) |
+         grepl("LN.3(", fctName, fixed=TRUE) |
+         grepl("W1.3(", fctName, fixed=TRUE) |
+         grepl("W2.3(", fctName, fixed=TRUE) |
+         grepl("G.3(",  fctName, fixed=TRUE) ){
          returnList <- by(data, assayNoOld,
                          function(g) drmte_sep1(formula = formula,
                                                data = g, subset = subset,
@@ -254,11 +254,18 @@ pshifts = NULL, varcov = NULL){
                                                 control = control,
                                                 lowerl = lowerl, upperl = upperl))
 
-        }
-       # print(returnList)
-       # stop("OK")
-       returnList <- sepFit2obj(returnList)
-       return(returnList)
+      }
+      sepList <- returnList
+      returnList <- sepFit2obj(returnList)
+      returnList$"dataList"$dose <- as.numeric(returnList$"dataList"$dose)
+      returnList$"dataList"$names$dName <- varNames0[3:(3+xDim-2)]
+      returnList$"dataList"$names$orName <- varNames0[1]
+      returnList$"dataList"$names$cNames <- anName
+      # class(sepList) <- "list"
+      returnList$separateFit <- sepList
+      class(returnList) <- c("drcteList", "drcte", "drc")
+      # class(returnList) <- c("drcte", "drc")
+      return(returnList)
   }
 
 
@@ -782,24 +789,11 @@ pshifts = NULL, varcov = NULL){
     if(fctName == "NPMLE()"){
       ## NPMLE fit ####
       nlsFit <- list()
-      # count <- origResp #data[,varNames0[1]]
-      # timeBef <- origDose[,1] #data[,varNames0[2]]
-      # timeAf <- origDose[,2] # data[,varNames0[3]]
-      # fitData <- data.frame(count, timeBef, timeAf, groups = factor(assayNo))
-      # print(fitData)
-      # retObj <- by(fitData, fitData$groups, function(x) NPcdf(x[,2], x[,3], x[,1]))
       retObj <- NPcdfList
       retList1 <- lapply(retObj, function(x) x$SurvObjSum)
       retList2 <- lapply(retObj, function(x) x$SurvObj)
       names(retList1) <- levels(factor(assayNoOld))
       names(retList2) <- levels(factor(assayNoOld))
-      # return(list(retList1, retList2)); stop()
-      # plotFun <- function(x, times, method = "interpolation") {
-      #     # Returns a function for prediction from NPMLE
-      #     val <- 1 - predictCDF(obj, x, method)[[1]]$S
-      #     return(c(val))
-      # }
-
       plotFctList <- lapply(retObj, function(x) x$Fh) #x$Type1plot)
       names(plotFctList) <- levels(factor(assayNoOld))
 
@@ -816,7 +810,6 @@ pshifts = NULL, varcov = NULL){
 
     } else if(fctName == "KDE()"){
       ## KDE fit ####
-      # stop("OK")
       nlsFit <- list()
       count <- origResp #data[,varNames0[1]]
       timeBef <- origDose[,1] #data[,varNames0[2]]
@@ -841,7 +834,8 @@ pshifts = NULL, varcov = NULL){
       nlsFit$ovalue <- NULL
       nlsFit$method <- "KDE"
       nlsFit$KDEmethod <- fct$bw
-      } else {
+    } else {
+      ## parametric fit
       nlsFit <- drmOpt(opfct, opdfct1, startVecSc, optMethod, constrained, warnVal,
       upperLimits, lowerLimits, errorMessage, maxIt, relTol, parmVec = parmVec,
       traceVal = control$"trace",
@@ -849,7 +843,6 @@ pshifts = NULL, varcov = NULL){
     }
 
     if (!nlsFit$convergence) {return(nlsFit)}
-
 
     ## Manipulating after optimisation ###################
     if (identical(type, "event"))
@@ -937,7 +930,8 @@ pshifts = NULL, varcov = NULL){
     ## Constructing a plot function #########################
 
     if(fctName != "NPMLE()"){
-    ## Picking parameter estimates for each curve. Does only work for factors not changing within a curve!
+    ## Picking parameter estimates for each curve.
+    # Does only work for factors not changing within a curve!
     if (!is.null(cm)) {iVec <- (1:numAss)[!(uniqueNames==cm)]} else {iVec <- 1:numAss}
     pickCurve <- rep(0, length(iVec))
     for (i in iVec)
@@ -977,7 +971,7 @@ pshifts = NULL, varcov = NULL){
     parmMat <- pmFct(fixedParm)  # (estMethod$"parmfct")(nlsFit) )
 
     ## Defining the plot function
-    pfFct <- function(parmMat)
+    pfFct <- function(obj)
     {
         plotFct <- function(dose)
         {
@@ -1007,7 +1001,7 @@ pshifts = NULL, varcov = NULL){
 
         return(plotFct)
     }
-    plotFct <- pfFct(parmMat)
+    plotFct <- pfFct(obj)
     } else {
       plotFct <- NULL
       pfFct <- NULL
@@ -1019,8 +1013,6 @@ pshifts = NULL, varcov = NULL){
     ## 9/4/2019 - Andrea Onofri. The original routine did
     ## not appear to work with type = "event". Therefore I
     ## parted the two routines
-
-
     if (identical(type, "event"))
     {
         dose <- dose[,-1]

@@ -146,7 +146,6 @@ quantileNPMLE.boot <- function(start, end, count, probs,
   return(df)
   }
 
-
 quantileKDE.boot <- function(start, end, count, probs,
                                        type = c("absolute", "relative"),
                      rate = F, B = 1000, seed = 1234, level = 0.95){

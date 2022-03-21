@@ -192,6 +192,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
 ungroup_te <- function(data, counts) {
   #This function organises a dataset to be submitted to survival analysis
   #i.e. one row per each seed.
+  data <- as.data.frame(data)
   dfr <- data["anName" > 0,]
   tmp <- try(dplyr::select(dfr, {{ counts }}), silent = T)
   if(class(tmp) == "try-error"){

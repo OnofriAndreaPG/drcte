@@ -5,7 +5,7 @@
   # This function is used to explore 'drc' and 'drcte' objects
   # and extract the data to be used for ggplots
   # Date of editing: 19/01/2022
-
+  # x <- mod
   object <- x
   type <- match.arg(type)
   npmle.type <- match.arg(npmle.type)
@@ -79,6 +79,9 @@
 
   ## Handling small dose values
   conLevel <- round(min(dose[is.finite(dose)])) - 1
+  # print(xLimits[1])
+  # print(xLimits[2])
+
 
   if ((xLimits[1] < conLevel) && (logX || (!is.null(logDose))))
   {
@@ -120,6 +123,7 @@
   }
 
   plotMat <- as.data.frame(plotMat)
+
    if(method == "NPMLE"){
      retData <- NULL
    } else {
@@ -135,10 +139,12 @@
 
    # Melt plot data
   if(method != "NPMLE" && numAss > 1){
+    # print(dlNames$cNames)
     retData <- tidyr::pivot_longer(retData, names_to = dlNames$cNames,
                           values_to = "CDF",
                           cols = c((doseDim + 1):length(retData[1,])))
     retData <- as.data.frame(retData)
+    # print(retData)
   }
 
   returnList <- list(plotPoints = plotPoints, plotFits = retData)

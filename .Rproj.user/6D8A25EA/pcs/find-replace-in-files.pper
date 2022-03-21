@@ -1,13 +1,13 @@
 {
     "dialog-state": {
-        "query": "confint.basic",
+        "query": "deviance.drc",
         "path": "~/Documents/_DBXAndrea/Dropbox/_Lavoro/MyUtilities/RPackages/drc/R",
         "regex": false,
         "caseSensitive": false,
         "wholeWord": false,
         "filePatterns": [],
         "excludeFilePatterns": [],
-        "resultsCount": 5,
+        "resultsCount": 0,
         "errorCount": 0,
         "replaceErrors": ""
     }

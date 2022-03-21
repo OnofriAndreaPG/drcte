@@ -1,0 +1,201 @@
+---
+title: "Buk"
+author: "Andrea Onofri"
+date: "14/02/2022"
+output: html_document
+---
+
+
+```{r}
+# Only at first instance
+# library(devtools)
+# install_github("onofriandreapg/drcte")
+# install_github("onofriandreapg/drcSeedGerm")
+# library(drcte)
+library(drcSeedGerm)
+library(tidyverse)
+library(gridExtra)
+library(readxl)
+
+rm(list = ls())
+Buk <- read_xlsx("docs/Buk_Update.xlsx", sheet = "H2") %>% 
+  mutate(timeAf = as.numeric(timeAf),
+         curveCode = factor(factor(temp):factor(water)))
+Buk
+```
+
+You only need to aggregate for plotting reasons (not for the analyses). In order to draw an explorative plot, you'd better use the 'timeAf' column, which should represent the moment when the counting is done.
+
+```{r}
+Buk_mean <- aggregate(propCum ~ curveCode + timeAf,
+                             mean, data=Buk)
+head(Buk_mean, n=6)
+ggplot() +
+  geom_point(data = Buk_mean, 
+             mapping = aes(x = timeAf, y = propCum)) +
+  facet_wrap(~ curveCode, ncol = 8)
+```
+
+Attempts to fit separate log-logistic models
+
+```{r}
+# Code for basic fitting and plotting
+devtools::load_all()
+mod <- drmte(nSeeds ~ timeBef + timeAf,
+          data = Buk,
+          fct = LL.3(), curveid = curveCode,
+          separate = T)
+
+summary(mod)
+
+tab <- plotData(mod)
+tab1 <- tab$plotFits
+tab2 <- tab$plotPoints
+
+ggplot() +
+  geom_point(data = Buk_mean, 
+             mapping = aes(x = timeAf, y = propCum)) +
+  geom_line(data = tab$plotFit, 
+            mapping = aes(x = timeAf, y = CDF), 
+            col = "red") +
+  facet_wrap(~ curveCode, ncol = 8)
+```
+
+Get the quantiles back
+
+```{r}
+quantVals <- quantile(mod, probs = c(0.3, 0.5),
+                   rate = T)
+quantVals
+df <- data.frame("Codes" = row.names(quantVals))
+df <- separate(df, col="Codes", into = c("temp", "water", "quant"), 
+         sep = ":")
+quantVals <- cbind(df, quantVals)
+```
+
+Fit a hydro-thermal-time model to the quantiles
+
+```{r}
+quantVals30 <- subset(quantVals, quant == "30%") %>% 
+  mutate(across(1:2, .fns = as.numeric))
+quantVals50 <- subset(quantVals, quant == "50%") %>% 
+  mutate(across(1:2, .fns = as.numeric))
+modHTT30 <- drm(Estimate ~ temp + water,
+              fct = GRTPsi.M(), data = quantVals30)
+modHTT50 <- drm(Estimate ~ temp + water,
+              fct = GRTPsi.M(), data = quantVals50)
+summary(modHTT30)
+summary(modHTT50)
+# modTT <- drm(Estimate ~ temp + water,
+#               fct = GRTPsi.M(), data = quantVals,
+#               curveid = factor(quant),
+#              start = rep(c(0.08,9, 550,-2.5), each = 2))
+# summary(modTT)
+```
+
+
+No germinations at 4 and 40 °C. For the other temperatures, I decided to attempt a hydro-time fit (one separate fit per temperature) and look at the parameters.
+
+```{r}
+# lapply(result, summary) # Not run, but possible
+coefs <- sapply(result, coef)
+row.names(coefs) <- gsub(pattern = ":(Intercept)", 
+    x = row.names(coefs), replacement = "",
+    fixed = T)
+coefs <- data.frame(t(coefs))
+
+
+Buk_SubHTT <- subset(Buk, temp < 40 & temp > 4)
+
+fitFUN <- function(df){
+  mod <- try(drmte(nSeeds ~ timeBef + timeAf + water,
+             data = df,
+             fct = HTnorm()) )
+  if(class(try) == "try-error") return("Error") else return(mod)
+}
+sepFit <- by(Buk_SubHTT, 
+             factor(Buk_SubHTT$temp), 
+             FUN = function(df) prova(df))
+
+# lapply(result, summary) # Not run, but possible
+coefs <- sapply(result, coef)
+row.names(coefs) <- gsub(pattern = ":(Intercept)", 
+    x = row.names(coefs), replacement = "",
+    fixed = T)
+coefs <- data.frame(t(coefs))
+```
+
+```{r}
+Buk_SubHTT <- subset(Buk, temp < 40 & temp > 4)
+mod.norm <- drmte(nSeeds ~ timeBef + timeAf + water,
+             data = Buk_SubHTT,
+             fct = HTnorm(),
+             curveid = temp)
+mod.norm$dataList$names
+mod.ll <- update(mod.norm, fct = HTLL())
+mod.l <- update(mod.norm, fct = HTL())
+mod.g <- update(mod.norm, fct = HTG())
+mod.w1 <- update(mod.norm, fct = HTW1())
+mod.w2 <- update(mod.norm, fct = HTW2())
+AIC(mod.norm, mod.ll, mod.l, mod.g, mod.w1, mod.w2)
+```
+
+It is interesting to note that the distribution of base water potential is log-logistic (and not normal), which confirms the results in Mesgaran et al. (2017). We can now try to simplify the model
+
+```{r}
+mod.ll2 <- mod.norm <- drmte(nSeeds ~ timeBef + timeAf + water,
+             data = Buk_SubHTT,
+             fct = HTLL(),
+             curveid = temp,
+             pmodels = c(~factor(temp) - 1, ~1, ~factor(temp) - 1,
+                         ~1))
+```
+
+Print this model
+
+```{r}
+plotData(mod.ll)
+```
+
+```{r}
+summary(mod.ll2)
+coefs <- data.frame(ThetaH = summary(mod.ll2)$coef[1:8,1],
+                    Psib50 = summary(mod.ll2)$coef[10:17,1]) 
+temps <- c(7,10,15,20,25,30,35,37)
+plot(coefs$ThetaH ~ I(1/temps))
+plot(coefs$Psib50 ~ temps)
+```
+
+
+```{r}
+head(Buk_SubHTT)
+modHTT <- drmte(nSeeds ~ timeBef + timeAf + water + temp,
+             data = Buk_SubHTT,
+             fct = HTTLL(),
+             start=c(150, 4, -1.1, 0.26, 2, 0.34))
+summary(modHTT)
+predData <- plotData(modHTT)
+```
+
+
+Plotting the results
+
+```{r}
+library(ggplot2)
+ggplot() +
+  geom_point(data = Buk_mean, 
+             mapping = aes(x = timeAf, y = propCum),
+            col = "red") +
+  geom_line(data = predData$plotFits, 
+            mapping = aes(x = timeAf, y = CDF)) +
+  facet_wrap(~ factor(temp):factor(water), ncol = 8) +
+  scale_x_continuous(name = "Time (d)") +
+  scale_y_continuous(name = "Cumulative proportion of germinated seeds")
+```
+
+
+# References
+
+1. Mesgaran, M.B., Onofri, A., Mashhadi, H.R., Cousens, R.D., 2017. Water availability shifts the optimal temperatures for seed germination: A modelling approach. Ecological Modelling 351, 87–95. https://doi.org/10.1016/j.ecolmodel.2017.02.020
+
+
