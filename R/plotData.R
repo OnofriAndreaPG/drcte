@@ -9,7 +9,12 @@
   object <- x
   type <- match.arg(type)
   npmle.type <- match.arg(npmle.type)
-  method <- object$fit$method
+  if(class(object)[1] == "drc"){
+    stop("This method only works for 'drcte' objects")
+    # method <- "drc"
+  } else {
+    method <- object$fit$method
+  }
   dataList <- object[["dataList"]]
   dlNames <- dataList[["names"]]
   doseName <- dlNames[["dName"]]
@@ -31,7 +36,12 @@
     # To display naive end-point estimator (upd. 21/12/21)
     dose <- dataList[["dose"]]
     resp <- dataList[["origResp"]]
-    curveid <- dlNames$rNames[dataList$curveid]
+    if(method == "drc"){
+      curveid <- dataList[["curveid"]]
+    } else {
+      curveid <- dlNames$rNames[dataList$curveid]
+    }
+
     plotid <- dataList[["plotid"]]
   }
 
