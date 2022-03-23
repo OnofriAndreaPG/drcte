@@ -3,6 +3,7 @@ summary.drcte <- function(object,
                           type = c("sandwich", "bootstrap", "jackknife"),
                           ...)
 {
+
   if(object$fit$method == "KDE"){
     parVec <- as.vector(coef(object))
     varMat <- NULL
@@ -56,7 +57,18 @@ summary.drcte <- function(object,
       # return(tab)
     }
 
-    if(!is.null(units)){
+    # test whether units are in the original 'data.frame' or they
+    # are given as an external vector
+    if(!missing(units)){
+      data <- object$origData
+      if(!is.null(data)){
+        tmp <- try(dplyr::select(data, {{ units }}), silent = T)
+        if(class(tmp) != "try-error"){
+          units <-  tmp[,1]
+          }
+      }
+
+      # if(!is.null(units)){
       vcovNew <- vcovCL(object, cluster = units)
       retMat <- coeftest(object, vcov. = vcovNew)
       class(object) <- "drc"
