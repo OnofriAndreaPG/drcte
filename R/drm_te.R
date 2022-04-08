@@ -44,7 +44,7 @@ pshifts = NULL, varcov = NULL){
   if ( (!is.list(fct)) && (!is.function(fct)) ) {stop("No function or list given in argument 'fct'")}
   if (is.function(fct))
   {
-    fct <- drc:::fct2list(fct, 2)
+    fct <- fct2list(fct, 2)
   }
 
   if (is.null(names(fct))) {fct$"fct" <- fct[[1]]; fct$"ssfct" <- fct[[2]]; fct$"names" <- fct[[3]]}
@@ -413,7 +413,7 @@ pshifts = NULL, varcov = NULL){
     parmPos <- c(0, cumsum(ncclVec)[-numNames])
 
     ## Constructing parameter names
-    pnList <- drc:::drmParNames(numNames, parNames, pmodelsList2)
+    pnList <- drmParNames(numNames, parNames, pmodelsList2)
     parmVec <- pnList[[1]]
     parmVecA <- pnList[[2]]
     parmVecB <- pnList[[3]]
@@ -611,7 +611,7 @@ pshifts = NULL, varcov = NULL){
     ## Converting parameters
     if (selfStart)
     {
-        startVec <- drc:::drmConvertParm(startVec, startMat, assayNo, pmodelsList2)
+        startVec <- drmConvertParm(startVec, startMat, assayNo, pmodelsList2)
     }
 
     # Scaling starting values (currently not done in drmEMls)
@@ -637,7 +637,7 @@ pshifts = NULL, varcov = NULL){
     # drcFct: mean function
     # cm: NULL ?
 
-    multCurves <- drc:::modelFunction(dose, parm2mat, drcFct, cm, assayNoOld, upperPos, fct$"retFct",
+    multCurves <- modelFunction(dose, parm2mat, drcFct, cm, assayNoOld, upperPos, fct$"retFct",
                                 doseScaling, respScaling, isFinite = rep(TRUE, lenData), pshifts)
 
     ## Defining first derivative (if available) ... used once in drmEMls()
@@ -1027,7 +1027,7 @@ pshifts = NULL, varcov = NULL){
           diagMat <- NULL
         } else {
 
-        multCurves2 <- drc:::modelFunction(dose, parm2mat, drcFct, cm, assayNoOld, upperPos,
+        multCurves2 <- modelFunction(dose, parm2mat, drcFct, cm, assayNoOld, upperPos,
                                            fct$"retFct",
                                            doseScaling, respScaling,
                                            isFinite = rep(T, length(origResp)))

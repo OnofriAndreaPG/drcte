@@ -11,17 +11,15 @@
     } else {
         indMat <- t(matrix(indexMat0, nrow = 1))
     }
-#    print(indMat)
     colnames(indMat) <- colnames(x$indexMat)
     curveID <- x$dataList[["curveid"]]
 
-    ## Defining a helper function for making a wide version of the mattrix of parameter estimates
+    ## Defining a helper function for making a wide version of the matrix
+    # of parameter estimates
     ## One column per parameter, with 0s
     xderiv2Fct <- function(xderiv1, indMat, curveID)
     {
         xderiv2 <- xderiv1[, rep(1:ncol(xderiv1), apply(indMat, 1, function(x){length(unique(x))}))]
-#        print(xderiv2)
-
         cnInd <- colnames(indMat)
         for (i in 1:ncol(indMat))
         {
@@ -30,35 +28,6 @@
         xderiv2
     }
 
-#     if (identical(x$type, "continuous"))
-#     {
-#         xderiv2 <- xderiv2Fct(xderiv1, indMat, curveID)
-# #        rval <- (weights(x) * residuals(x)) * x$deriv1
-#         rval <- (weights(x) * residuals(x)) * xderiv2
-#     }
-#
-#     if (identical(x$type, "binomial"))
-#     {  # not handling missing values
-#         nTotal <- weights(x)
-#         nObs <- x[["dataList"]][["resp"]] * nTotal
-#         fittedVal <- fitted(x)
-#         rval0 <- nObs/fittedVal + (nObs - nTotal)/(1 - fittedVal)
-#         rval0[!is.finite(rval0)] <- 0  # handling fitted values equal to 0 or 1
-# #        rval <- x$deriv1 * rval0
-#         xderiv2 <- xderiv2Fct(xderiv1, indMat, curveID)
-#         rval <- xderiv2 * rval0
-#         rval
-#     }
-#     if (identical(x$type, "Poisson"))
-#     {  # not handling missing values
-#         resp <- x[["dataList"]][["resp"]]
-#         fittedVal <- fitted(x)
-#         rval0 <- resp / fittedVal - 1
-# #        rval <- x$deriv1 * rval0
-#         xderiv2 <- xderiv2Fct(xderiv1, indMat, curveID)
-#         rval <- xderiv2 * rval0
-#         rval
-#     }
     if (identical(x$type, "event"))
     {  # not handling missing values
 
@@ -72,14 +41,16 @@
         # Correction on 18/2/19 ################################
         # ids <- ifelse(is.null(doses), 5, 5 + length(x$dataList[["dose"]][1,]) - 2)
         ids <- ifelse(is.null(doses), 5, 5 + length(x$dataList[["dose"]][1,]) - 1)
-        # print(ids)
-        # stop("OK")
         countCol <- ifelse(is.null(doses), 3, 3 + length(x$dataList[["dose"]][1,]) - 1)
         Ft1 <- predict(x, data.frame(x$data[, c(1, doses)], x$data[, ids]))
         Ft2 <- predict(x, data.frame(x$data[, c(2, doses)], x$data[, ids]))
+        # 31/3/2022: needed this correction after modifying the output of predict
+        Ft1 <- Ft1[,length(Ft1[1,])]
+        Ft2 <- Ft2[,length(Ft2[1,])]
         Ft2[!is.finite(x$data[, 2])] <- 1
         diffF <- Ft2 - Ft1 #likelihood for individual seed
         diffF[diffF==0] <- 10e-6
+
 
         #Correction on 18/2/19 (went back) ################################
         DFt1.0 <- x[["fct"]]$"deriv1"(x$data[, c(1, doses)], t(x[["parmMat"]][, as.character(x$data[, ids])]))

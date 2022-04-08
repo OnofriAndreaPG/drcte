@@ -110,7 +110,7 @@ compCDFpar <- function(obj,
       message("Permuting groups")
         for(b in 1:B){
           message(".", appendLF = F)
-          pr <- drcte:::resample.cens(df, cluster = df$cluster, replace = c(F, F))
+          pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
           pr$group <- obj$data[[5]]
           pr <- pr[order(pr$cluster, pr$timeBef), ]
           newList <- as.character(pr$group)
@@ -161,119 +161,119 @@ compCDFpar <- function(obj,
 }
 
 
-compCDFkde.old <- function(obj,
-                       alternative= c("two.sided", "less", "greater"),
-                       B = 50){
-
-  obj2 <- update(obj, curveid = NULL) # Fitting cumulato
-
-  # Recuperare oggetti rilevanti
-  ug <- obj$dataList$names$rNames
-  recObj <- obj2$ICfit$naiveStart
-  recObj2 <- obj2$ICfit$naiveEnd
-  t <- (recObj$time + recObj2$time)/2
-  y <- unique(c(recObj$time, recObj2$time))
-  wpooled <- recObj$pdf
-  hpooled <- as.numeric(obj2$coefficients)
-  hvals <- as.numeric(obj$coefficients)
-  ntrt <- length(hvals)
-
-  ni <- tapply(obj$data[[3]], obj$data[[5]], sum)
-
-  calcDstat <- function(obj, obj2){
-    # Calculate the Cramer-von Mises distance
-
-    # bandwidths
-    hpooled <- as.numeric(obj2$coefficients)
-    hvals <- as.numeric(obj$coefficients)
-
-    t <- (obj2$ICfit$naiveStart$time + obj2$ICfit$naiveEnd$time)/2
-    wpooled <- obj2$ICfit$naiveStart$pdf
-    lim2 <- t[length(t)] # max
-    lim1 <- t[1] # min
-    limInf <- lim1 + hpooled * stats::qnorm(0.99)
-    limSup <- lim2 + hpooled * stats::qnorm(0.01)
-    Fhi <- obj$curve[[1]]
-    Fh <- obj2$curve[[1]][[1]]
-    fh <- Vectorize(function(x) 1 / hpooled * sum(wpooled * stats::dnorm((x-t)/hpooled)))
-    ntrt <- length(hvals)
-    Dval <- rep(NA, ntrt)
-
-    for(i in 1:ntrt){
-      Dval[i] <- stats::integrate(function(x)(Fhi[[i]](x)-Fh(x))^2*fh(x), limInf, limSup)$value
-      Dval[i] <- Dval[i] * ni[i]
-    }
-    obsD <- sum(Dval)/ntrt
-    return(list(Dvals = Dval, obsD=obsD))
-  }
-
-  Dlist <- calcDstat(obj, obj2)
-  D <- Dlist$obsD
-
-  Db <- rep(NA, B)
-
-  for(b in 1:B){
-    # Get a resample
-    # cat("Resampling: \t")
-    cat("\r", b)
-    newCounts <- c()
-    newId <- c()
-    for(i in 1:ntrt){
-      .tmp1 <- sample(t, size = ni[i], prob = wpooled, replace=TRUE)
-      .tmp2 <- hpooled * stats::rnorm(ni[i])
-      # xbi <- sort(sample(t, size = ni[i], prob = wpooled, replace=TRUE) + hpooled*stats::rnorm(ni[i]))
-      xbi <- sort(.tmp1 + .tmp2)
-      cbi <- table(cut(xbi, breaks = y))
-      wbi <- cbi/ni[i]
-      tti <- t
-      # wbi2 <- binnednp:::calcw_cpp(xbi, y)
-      newCounts <- c(newCounts, cbi)
-    }
-    df <- data.frame(start = rep(recObj$time, ntrt),
-                     end = rep(recObj2$time, ntrt),
-                     count = newCounts,
-                     Id = rep(1:ntrt, each = length(recObj$time)))
-    obj <- drmte(count ~ start + end, fct = KDE(),
-                 curveid = Id, data = df) # Fitting separato
-    obj2 <- update(obj, curveid = NULL) # Fitting cumulato
-    Db[b] <- calcDstat(obj, obj2)$obsD
-  }
-  pval <- mean(Db > D)
-
-  # Try a permutation approach
-
-  ## Describes the results
-  cat("\n")
-  TEST<-"Bootstrap test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
-  null.phrase <- "NULL: time-to-event curves are equal"
-  alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
-
-  tabRes <- data.frame("level" = as.character(ug), n = ni, D = Dlist$Dvals)
-  cat(TEST)
-  cat("\n")
-  cat(null.phrase)
-  cat("\n")
-  cat("\n")
-  print(tabRes)
-  cat("\n")
-  cat(paste("Observed D value = ", round(Dlist$obsD, 4)))
-  cat("\n")
-  cat(paste("P value = ", round(pval, 6)))
-  cat("\n")
-
-
-  # pout$data.name <- paste("{",L.name,",",R.name,"}"," by ",group.name,sep="")
-    pout <- list()
-    pout$method <- "Kramer - Von Mises distance"
-    pout$scores <- NULL
-    pout$val0 <- Dlist$obsD
-    pout$vali <- Db
-    pout$pval <- NULL
-    pout$pvalb <- pval
-    pout$U <- NULL
-    pout$N <- NULL
-  return(pout)
-}
+# compCDFkde.old <- function(obj,
+#                        alternative= c("two.sided", "less", "greater"),
+#                        B = 50){
+#
+#   obj2 <- update(obj, curveid = NULL) # Fitting cumulato
+#
+#   # Recuperare oggetti rilevanti
+#   ug <- obj$dataList$names$rNames
+#   recObj <- obj2$ICfit$naiveStart
+#   recObj2 <- obj2$ICfit$naiveEnd
+#   t <- (recObj$time + recObj2$time)/2
+#   y <- unique(c(recObj$time, recObj2$time))
+#   wpooled <- recObj$pdf
+#   hpooled <- as.numeric(obj2$coefficients)
+#   hvals <- as.numeric(obj$coefficients)
+#   ntrt <- length(hvals)
+#
+#   ni <- tapply(obj$data[[3]], obj$data[[5]], sum)
+#
+#   calcDstat <- function(obj, obj2){
+#     # Calculate the Cramer-von Mises distance
+#
+#     # bandwidths
+#     hpooled <- as.numeric(obj2$coefficients)
+#     hvals <- as.numeric(obj$coefficients)
+#
+#     t <- (obj2$ICfit$naiveStart$time + obj2$ICfit$naiveEnd$time)/2
+#     wpooled <- obj2$ICfit$naiveStart$pdf
+#     lim2 <- t[length(t)] # max
+#     lim1 <- t[1] # min
+#     limInf <- lim1 + hpooled * stats::qnorm(0.99)
+#     limSup <- lim2 + hpooled * stats::qnorm(0.01)
+#     Fhi <- obj$curve[[1]]
+#     Fh <- obj2$curve[[1]][[1]]
+#     fh <- Vectorize(function(x) 1 / hpooled * sum(wpooled * stats::dnorm((x-t)/hpooled)))
+#     ntrt <- length(hvals)
+#     Dval <- rep(NA, ntrt)
+#
+#     for(i in 1:ntrt){
+#       Dval[i] <- stats::integrate(function(x)(Fhi[[i]](x)-Fh(x))^2*fh(x), limInf, limSup)$value
+#       Dval[i] <- Dval[i] * ni[i]
+#     }
+#     obsD <- sum(Dval)/ntrt
+#     return(list(Dvals = Dval, obsD=obsD))
+#   }
+#
+#   Dlist <- calcDstat(obj, obj2)
+#   D <- Dlist$obsD
+#
+#   Db <- rep(NA, B)
+#
+#   for(b in 1:B){
+#     # Get a resample
+#     # cat("Resampling: \t")
+#     cat("\r", b)
+#     newCounts <- c()
+#     newId <- c()
+#     for(i in 1:ntrt){
+#       .tmp1 <- sample(t, size = ni[i], prob = wpooled, replace=TRUE)
+#       .tmp2 <- hpooled * stats::rnorm(ni[i])
+#       # xbi <- sort(sample(t, size = ni[i], prob = wpooled, replace=TRUE) + hpooled*stats::rnorm(ni[i]))
+#       xbi <- sort(.tmp1 + .tmp2)
+#       cbi <- table(cut(xbi, breaks = y))
+#       wbi <- cbi/ni[i]
+#       tti <- t
+#       # wbi2 <- binnednp:::calcw_cpp(xbi, y)
+#       newCounts <- c(newCounts, cbi)
+#     }
+#     df <- data.frame(start = rep(recObj$time, ntrt),
+#                      end = rep(recObj2$time, ntrt),
+#                      count = newCounts,
+#                      Id = rep(1:ntrt, each = length(recObj$time)))
+#     obj <- drmte(count ~ start + end, fct = KDE(),
+#                  curveid = Id, data = df) # Fitting separato
+#     obj2 <- update(obj, curveid = NULL) # Fitting cumulato
+#     Db[b] <- calcDstat(obj, obj2)$obsD
+#   }
+#   pval <- mean(Db > D)
+#
+#   # Try a permutation approach
+#
+#   ## Describes the results
+#   cat("\n")
+#   TEST<-"Bootstrap test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
+#   null.phrase <- "NULL: time-to-event curves are equal"
+#   alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
+#
+#   tabRes <- data.frame("level" = as.character(ug), n = ni, D = Dlist$Dvals)
+#   cat(TEST)
+#   cat("\n")
+#   cat(null.phrase)
+#   cat("\n")
+#   cat("\n")
+#   print(tabRes)
+#   cat("\n")
+#   cat(paste("Observed D value = ", round(Dlist$obsD, 4)))
+#   cat("\n")
+#   cat(paste("P value = ", round(pval, 6)))
+#   cat("\n")
+#
+#
+#   # pout$data.name <- paste("{",L.name,",",R.name,"}"," by ",group.name,sep="")
+#     pout <- list()
+#     pout$method <- "Kramer - Von Mises distance"
+#     pout$scores <- NULL
+#     pout$val0 <- Dlist$obsD
+#     pout$vali <- Db
+#     pout$pval <- NULL
+#     pout$pvalb <- pval
+#     pout$U <- NULL
+#     pout$N <- NULL
+#   return(pout)
+# }
 
 compCDFkde <- function(obj,
                        alternative= c("two.sided", "less", "greater"),
@@ -338,7 +338,7 @@ compCDFkde <- function(obj,
     R <- rep(obj$data[, 2], obj$data[,ncol - 3])
     newGroup <- sample(group, replace = FALSE)
     df <- data.frame(L = L, R = R, group = newGroup, count = rep(1, length(L)))
-    df <- arrange(group_te(df), group)
+    df <- dplyr::arrange(group_te(df), group)
     objNew <- drmte(count ~ L + R, fct = KDE(),
                  curveid = group, data = df) # Fitting separato
     obj2New <- update(objNew, curveid = NULL) # Fitting cumulato
@@ -354,7 +354,7 @@ compCDFkde <- function(obj,
     message("Permuting groups")
     for(b in 1:B){
       message(".", appendLF = F)
-      pr <- drcte:::resample.cens(df, cluster = df$cluster, replace = c(F, F))
+      pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
       pr$group <- obj$data[[5]]
       pr <- pr[order(pr$cluster, pr$timeBef), ]
       newList <- as.character(pr$group)
@@ -506,7 +506,7 @@ compCDFnp <- function(obj,
         df <- data.frame(id = 1:length(cluster),
                        obj$data,
                        cluster = cluster)
-        pr <- drcte:::resample.cens(df, cluster = df$cluster, replace = c(F, F))
+        pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
         pr$group <- obj$data[[5]]
         pr <- pr[order(pr$cluster, pr$timeBef), ]
         newList <- as.character(pr$group)

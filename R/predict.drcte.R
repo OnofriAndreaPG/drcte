@@ -2,22 +2,36 @@
                             interval = FALSE, # = c("none", "confidence", "boot"),
                             level = 0.95,
                             na.action = na.pass, # od = FALSE, vcov. = vcov,
-                            NPMLE.method = "interpolation",
-                            units = NULL,
-                            B = 200, ...)
-{
-
+                            npmle.type = c("interpolation", "left", "right", "midpoint"),
+                            robust = FALSE, units = NULL,
+                            B = 200, ...){
   ## Checking arguments
   # object <- mod
   # newdata <- 180
   # cluster <- NULL
+  # test whether units are in the original 'data.frame' or they
+  # are given as an external vector
+  if(!is.null(object$origData)){
+    object$origData <- data.frame(object$origData)
+  }
+
+  if(robust) se.fit <- TRUE
+    if(!missing(units)){
+      data <- object$origData
+      if(!is.null(data)){
+        tmp <- try(dplyr::select(data, {{ units }}), silent = T)
+        if(class(tmp) != "try-error"){
+          units <-  tmp[,1]
+          }
+      }
+    }
+
   cluster <- units
   # interval <- match.arg(interval) # modified as TRUE/FALSE
   respType <- object[["type"]]
   dataList <- object[["dataList"]]
   dataSet <- object[["data"]]
   ncol <- length(dataSet[1,])
-
   cName <- dataList[["names"]][["cNames"]]
   cLevs <- dataList[["names"]][["rNames"]]
 
@@ -27,6 +41,7 @@
     dataSet <- dataSet[is.finite(dataSet[,2]) == T, ]
     doseVec <- dataSet[,-c(1,(ncol - 3):ncol)]
     groupLevels <- dataSet[,(ncol - 2)] # as.character(dataList[["plotid"]])
+    varCurveId <- cLevs[groupLevels]
   } else {
     # Case 2: newdata is given.
     if(is.vector(newdata)) newdata <- data.frame(newdata)
@@ -42,13 +57,12 @@
       }
     } else {
       # More than one predictor in the model (eg: HT models)
-      doseDim <- ncol(dataList[["dose"]])
-
+      doseDim <- ncol(dataList[["dose"]]) - 1
       if(length(newdata[1,]) <= doseDim) stop("The number of dependent variables in newdata is not equal to the number of dependent variables in the model")
       doseVec <- newdata
     }
 
-    # With new data, if more than one time-to-event curve is defined,
+    # With newdata, if more than one time-to-event curve is defined,
     # predictions are made for all curves
     nameLevels <- levels(factor(dataSet[,(ncol - 1)]))
     if(is.vector(doseVec)){
@@ -57,9 +71,8 @@
     } else {
       groupLevels <- rep(nameLevels, each = length(doseVec[,1]))
       doseVec <- doseVec[rep(seq_len(nrow(doseVec)), length(nameLevels)),]
-      # doseVec <- rep(doseVec, length(nameLevels))
     }
-
+    varCurveId <- groupLevels
   }
 
   # counts the number of predictions to be derived
@@ -71,12 +84,14 @@
 
   ## Retrieving variance-covariance matrix for parametric fits
   if(object$fit$method != "KDE" & object$fit$method != "NPMLE"){
-    sumObj <- summary(object, od = od) #summary(object, od = od)
+    sumObj <- summary(object) #, od = od) #summary(object, od = od)
 
-    if(is.null(cluster)){
+    if(is.null(cluster) & !robust){
       vcovMat <- vcov(object)
+    } else if(is.null(cluster) & robust){
+      vcovMat <- vcovCL(object)
     } else {
-      vcovMat <- vcovCL(object, cluster = cluster)
+      vcovMat <- vcovCL(object, cluster = factor(cluster))
     }
 
   }
@@ -97,17 +112,10 @@
     retMat[, 1] <- as.numeric(mapply(listaFun, groupLevels, doseVec))
   } else {
     # NPMLE
-    # NPMLE.method = "interpolation"
+    NPMLE.method = match.arg(npmle.type)
     listaFun <- function(x, y) object$curve[[1]][[x]](y, NPMLE.method)
     retMat[, 1] <- as.numeric(mapply(listaFun, groupLevels, doseVec))
     }
-
-  ## Checking if derivatives are available
-  deriv1 <- objFct$"deriv1"
-  if (is.null(deriv1) & object$fit$method != "KDE" & object$fit$method != "NPMLE")
-  {
-    return(retMat[, 1])
-  }
 
   ## Calculating the quantile to be used in the confidence intervals
   # if (!identical(interval, "none")) {
@@ -117,16 +125,17 @@
 
   ## Calculating standard errors and/or confidence intervals
   if(object$fit$method != "KDE" & object$fit$method != "NPMLE"){
-    # if (se.fit || (!identical(interval, "none")))
-    if (se.fit || interval == TRUE)
-    {
+
+    # SEs for Parametric time-to-event models
+    ## Checking if derivatives are available
+    deriv1 <- objFct$"deriv1"
+
+    if (!is.null(deriv1) & (se.fit || interval == TRUE)) {
       sumObjRV <- 0
       piMat <- indexMat[, groupLevels, drop = FALSE]
-      for (rowIndex in 1:noNewData)
-      {
+      for (rowIndex in 1:noNewData){
         parmInd <- piMat[, rowIndex]
         varCov <- vcovMat[parmInd, parmInd]
-
         if(is.vector(doseVec)){
           dfEval <- deriv1(doseVec[rowIndex], pm[rowIndex, , drop = FALSE])
         } else{
@@ -149,113 +158,153 @@
         }
     }
 
-  } else if(object$fit$method == "NPMLE"){
-    # if(!se.fit & identical(interval, "none") | missing(newdata))
-    if(se.fit == FALSE & interval == FALSE) # | missing(newdata))
-    {
-      return(retMat[, 1])
-      end()
-    } else if(se.fit == T){
+    } else if(object$fit$method == "NPMLE"){
+      # NPMLE fit
+      if(se.fit || interval != FALSE){
+        # return(retMat[, 1])
+        # } else if(se.fit == T){
+        if(is.null(cluster)) df <- object$data else df <- data.frame(object$data, group = cluster)
+        splitData <- by(df, object$data[,5], function(x) x)
 
-      if(is.null(cluster)) df <- object$data else df <- data.frame(object$data, group = cluster)
-      splitData <- by(df, object$data[,5], function(x) x)
+        confCal <- function(x, times.pred, B, groups = NULL) {
+          L <- rep(x[,1], x[,3])
+          R <- rep(x[,2], x[,3])
+          if(!is.null(groups)) gr <- rep(x[,length(x[1,])], x[,3]) else gr <- NULL
+          cis <- confint.predict(L, R, times.pred, B = B, groups = gr)
+          cis
+        }
+        # splitDoseVec <- by(doseVec, dataSet[,5], function(x) x)
+        splitDoseVec <- by(doseVec, groupLevels, function(x) x)
 
-      # if(!missing(newdata)){
-      #   if(!any(names(newdata) %in% cName)){
-      #     misLev <- c()
-      #     cont <- 1
-      #     for(i in 1:length(names(splitData))){
-      #       if(any(unique(groupLevels) == names(splitData)[i]) == F)  {
-      #         misLev[cont] <- i
-      #         cont <- cont + 1}
-      #     }
-      #
-      #     # if(!is.null(misLev)) splitData <- splitData[-misLev]
-      #     splitData <- list(splitData[[1]])
-      #   }
-      # }
+        cis <- list()
+        for(i in 1:length(splitData)){
+          # i <- 1
+          tmp <- confCal(splitData[[i]], splitDoseVec[[i]], B = B, groups = cluster)
+          cis[[i]] <- as.data.frame(tmp)
+          # cis <- append(cis, as.data.frame(tmp))
+        }
 
-      confCal <- function(x, times.pred, B, groups = NULL) {
-        L <- rep(x[,1], x[,3])
-        R <- rep(x[,2], x[,3])
-        if(!is.null(groups)) gr <- rep(x[,length(x[1,])], x[,3]) else gr <- NULL
-        cis <- confint.predict(L, R, times.pred, B = B, groups = gr)
-        cis
-      }
-      # splitDoseVec <- by(doseVec, dataSet[,5], function(x) x)
-      splitDoseVec <- by(doseVec, groupLevels, function(x) x)
+        tmp <- data.frame(sapply(cis, function(x) x$se))
+        tmp2 <- data.frame(sapply(cis, function(x) x$lower))
+        tmp3 <- data.frame(sapply(cis, function(x) x$upper))
 
-      cis <- list()
-      for(i in 1:length(splitData)){
-        # i <- 1
-        tmp <- confCal(splitData[[i]], splitDoseVec[[i]], B = B, groups = cluster)
-        cis[[i]] <- as.data.frame(tmp)
-        # cis <- append(cis, as.data.frame(tmp))
-      }
+        if(length(tmp[1,]) == 1) {
+          retMat[, 2] <- as.numeric(unlist(tmp))
+          indCol <- 3
+          if (interval == TRUE){
+            retMat[, indCol] <- as.numeric(unlist(tmp2))
+            retMat[, indCol + 1] <- as.numeric(unlist(tmp3))
+            colnames(retMat)[indCol] <- "Lower"
+            colnames(retMat)[indCol + 1] <- "Upper"
+            indCol <- indCol + 2
+          }
+          retMat <- data.frame(retMat)
+          retMat[, indCol] <- object$dataList$names$rNames
+        } else {
+          colnames(tmp) <- object$dataList$names$rNames
+          tmp <- stack(tmp)
+          tmp2 <- stack(tmp2)
+          tmp3 <- stack(tmp3)
 
-      # cis
-      # cis <- lapply(splitData, function(x) confCal(x, unique(doseVec), B = B,
-      #                                               groups = cluster))
-      # cis <- lapply(splitData, function(x) confCal(x, doseVec, B = B,
-      #                                              groups = cluster))
-      # retMat[, 1] <- as.numeric(mapply(listaFun, groupLevels, doseVec))
-      tmp <- data.frame(sapply(cis, function(x) x$se))
-      tmp2 <- data.frame(sapply(cis, function(x) x$lower))
-      tmp3 <- data.frame(sapply(cis, function(x) x$upper))
+          retMat[, 2] <- tmp[,1]
+          retMat <- data.frame(retMat)
+          indCol <- 3
 
-      if(length(tmp[1,]) == 1) {
-        retMat[, 2] <- as.numeric(unlist(tmp))
-        indCol <- 3
-        if (interval == TRUE){
-          retMat[, indCol] <- as.numeric(unlist(tmp2))
-          retMat[, indCol + 1] <- as.numeric(unlist(tmp3))
-          colnames(retMat)[indCol] <- "Lower"
-          colnames(retMat)[indCol + 1] <- "Upper"
-          indCol <- indCol + 2
+          if (interval == TRUE){
+            retMat[, indCol] <- tmp2[, 1]
+            retMat[, indCol + 1] <- tmp3[, 1]
+            colnames(retMat)[indCol] <- "Lower"
+            colnames(retMat)[indCol + 1] <- "Upper"
+            indCol <- indCol + 2
+          }
+          retMat[, indCol] <- tmp[,2]
         }
         retMat <- data.frame(retMat)
-        retMat[, indCol] <- object$dataList$names$rNames
-      } else {
-        colnames(tmp) <- object$dataList$names$rNames
-        tmp <- stack(tmp)
-        tmp2 <- stack(tmp2)
-        tmp3 <- stack(tmp3)
-
-        retMat[, 2] <- tmp[,1]
-        retMat <- data.frame(retMat)
-        indCol <- 3
-
-        if (interval == TRUE){
-          retMat[, indCol] <- tmp2[, 1]
-          retMat[, indCol + 1] <- tmp3[, 1]
-          colnames(retMat)[indCol] <- "Lower"
-          colnames(retMat)[indCol + 1] <- "Upper"
-          indCol <- indCol + 2
-        }
-        retMat[, indCol] <- tmp[,2]
+        retMat[, indCol + 1] <- doseVec
+        colnames(retMat)[indCol] <- cName
+        colnames(retMat)[indCol + 1] <- "Time"
       }
-
-      retMat <- data.frame(retMat)
-      retMat[, indCol + 1] <- doseVec
-      colnames(retMat)[indCol] <- cName
-      colnames(retMat)[indCol + 1] <- "Time"
-
-      return(retMat)
-      end()
-    }
 
   } else if(object$fit$method == "KDE"){
-    # To be done
+    retMat[,2:4] <- NA
   }
-
 
   ## Keeping relevant indices
   keepInd <- 1
   if (se.fit) {keepInd <- c(keepInd, 2)}
-  # if (!identical(interval, "none")) {keepInd <- c(keepInd, 3, 4)}
-  if (interval == T) {keepInd <- c(keepInd, 3, 4)}
+  if (interval == T) {
+      keepInd <- c(keepInd, 3, 4)
+      retMat[, 3] <- pmax(retMat[, 3], 0)}
+  retMat <- retMat[, keepInd]
+  if(!is.vector(retMat)) retMat <- data.frame(retMat)
 
-  return(retMat[, keepInd])  # , drop = FALSE])
+  if(!missing(newdata)) {
+      if(is.vector(retMat)) {
+        retMat <- cbind(newdata, "Prediction" = retMat, row.names = NULL)
+      } else {
+        retMat <- cbind(newdata, retMat, row.names = NULL)
+      } }
+  if(length(levels(factor(groupLevels))) > 1 & !is.vector(retMat)){
+    retMat <- data.frame(varCurveId, retMat)
+    colnames(retMat)[1] <- cName
+  }
+
+  return(retMat)
+}
+
+predict.llogistic <- function(object, newdata, coefs, vcov. = NULL){
+  if (missing(newdata)) stop ("No newdata have been given")
+  if (missing(coefs)) stop ("No coefficients have been given")
+  class(object) <- "list"
+  predict(object = object, newdata = newdata, coefs = coefs, vcov. = vcov.)
+}
+
+
+predict.list <- function(object, newdata, coefs, vcov. = NULL){
+
+  if (is.null(object$fct)) stop ("No 'fct' component exist in object")
+  if (missing(newdata)) stop ("No newdata have been given")
+  if (missing(coefs)) stop ("No coefficients have been given")
+  if(length(coefs) != length(object$names)) stop("The number of parameters is not correct")
+  parmMat <- matrix(coefs, 1, length(coefs))
+
+  if(!is.null(vcov.)) vcovMat <- vcov.
+
+  ## Calculating predicted values
+
+  if(is.vector(newdata)) {
+    noNewData <- length(newdata)
+    retMat <- matrix(0, noNewData, 2)
+    colnames(retMat) <- c("Prediction", "SE")
+    retMat[, 1] <- object$"fct"(newdata, parmMat)
+  } else {
+    noNewData <- length(newdata[,1])
+    retMat <- matrix(0, noNewData, 2)
+    colnames(retMat) <- c("Prediction", "SE")
+    objFct <- object[["fct"]]
+    if(length(newdata[1,]) == 1) newdata <- newdata[,1]
+    retMat[, 1] <- object$"fct"(newdata, parmMat)
+    }
+
+  ## Calculating standard errors and/or confidence intervals
+  deriv1 <- object$"deriv1"
+  if (!is.null(deriv1) & !is.null(vcov.)){
+    if(is.vector(newdata)){
+        dfEval <- deriv1(newdata, parmMat)
+    } else {
+        dfEval <- deriv1(newdata, parmMat)
+    }
+  varVal <- dfEval %*% vcovMat %*% t(dfEval)
+  retMat[, 2] <- sqrt(diag(varVal))
+  }
+
+  ## Keeping relevant indice
+  if(is.null(vcov.)){
+    retMat <- data.frame(newdata, prediction = retMat[,1])
+  } else {
+    retMat <- data.frame(newdata, retMat)
+  }
+  return(retMat)
 }
 
 

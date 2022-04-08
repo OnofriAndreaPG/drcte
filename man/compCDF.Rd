@@ -7,7 +7,8 @@ Compare time-to-event curves
 This function is used to compare time-to-event curves for different experimental treatments. The apprach depends on the type of time-to-event curves, i.e., parametric, NPMLE and KDE (see details)
 }
 \usage{
-compCDF(obj, alt = NULL, scores = c("wmw", "logrank1", "logrank2"), B = 199, type = c("naive", "permutation"), units = NULL)
+compCDF(obj, alt = NULL, scores = c("wmw", "logrank1", "logrank2"),
+B = 199, type = c("naive", "permutation"), units = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -52,10 +53,6 @@ Andrea Onofri
 }
 \note{
 Some code is taken from the 'interval' package and from the 'binnednp' package (citations below).
-}
-
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
 rm(list = ls())

@@ -29,6 +29,8 @@ With parametric models, ‘naive’ (asymptotic) standard errors are obtained fr
 \references{
 Carroll RJ, Wang S, Simpson DG, Stromberg AJ, Ruppert D (1998) The sandwich (robust covariance matrix) estimator. Technical report, Department of statistics. A&M University. Texas (USA)
 
+Onofri, A., Mesgaran, M., & Ritz, C. (2022). A unified framework for the analysis of germination, emergence, and other time-to-event data in weed science. Weed Science, 1-13. doi:10.1017/wsc.2022.8
+
 Yu B, Peng Y (2008) Mixture cure models for multivariate survival data. Comput Stat Data Anal 52:1524–1532
 
 Zeileis A, Koell S, Graham N (2020) Various Versatile Variances: An Object-Oriented Implementation of Clustered Covariances in R. J Stat Softw 95

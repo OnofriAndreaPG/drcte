@@ -11,8 +11,10 @@ Reshaping time-to-event datasets}
 This is a set of functions that can be used to transform time-to-event datasets into a form that is amenable for data analyses with the 'drc' and 'drcte' packages}
 
 \usage{
-melt_te(data = NULL, count_cols, treat_cols, monitimes, n.subjects = NULL, grouped = T)
-decumulate_te(data = NULL, resp, treat_cols, monitimes, units, n.subjects, type = c("count", "proportion"))
+melt_te(data = NULL, count_cols, treat_cols, monitimes,
+n.subjects = NULL, grouped = T)
+decumulate_te(data = NULL, resp, treat_cols, monitimes,
+units, n.subjects, type = c("count", "proportion"))
 group_te(data)
 ungroup_te(data, counts)
 }
@@ -33,7 +35,7 @@ Details are given in \url{https://www.statforbiology.com/2021/stat_drcte_3-resha
 Returns a data frame
 }
 \references{
-%% ~put references to the literature/web site here ~
+See \url{https://www.statforbiology.com/2021/stat_drcte_3-reshapingdata/}
 }
 \author{
 Andrea Onofri

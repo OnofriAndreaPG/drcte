@@ -102,7 +102,7 @@ as.drc <- function(obj){
                      startVec, parmVec, diagMat, callDetail,
                      dataSet, parmMatOut, fct, robust, estMethod, df.residual,
                      sumList, NULL, pmFct, pfFct, type, indexMat, logDose, cm, deriv1, #[isFinite,],
-                     anName, data, wVec,
+                     anName, origData, wVec,
                      dataList, coefVec, bcVec)
 
 

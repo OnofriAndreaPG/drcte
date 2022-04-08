@@ -120,7 +120,7 @@ quantileNPMLE.boot <- function(start, end, count, probs,
       cat("\r Resampling:", i)
       tmp <- resample.cens(df, replace = list(TRUE))
     }
-    fiti <- drcte:::getNPMLE(survival::Surv(tmp$L, tmp$R, type = "interval2") ~ 1)
+    fiti <- getNPMLE(survival::Surv(tmp$L, tmp$R, type = "interval2") ~ 1)
     newStart <- fiti$intmap[1,]
     newEnd <- fiti$intmap[2,]
     n <- sum(count)

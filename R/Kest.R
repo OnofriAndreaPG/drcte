@@ -20,9 +20,9 @@ Kest <- function(timeBef, timeAf, count,
   t <- y[-length(y)] + diff(y)/2
   k <- length(t)
   if(alg == "binnednp"){
-    Ke <- binnednp::bw.dist.binned(n, y, w, gplugin, type="N", confband=F, B=1000,
-                           alpha=0.05, plot = F, print = F,
-                           parallel=FALSE, pars=new.env())
+    # Ke <- binnednp::bw.dist.binned(n, y, w, gplugin, type="N", confband=F, B=1000,
+    #                        alpha=0.05, plot = F, print = F,
+    #                        parallel=FALSE, pars=new.env())
   } else {
     Ke <- bw.dist(n, y, w, li = l, gplugin, type="N", confband=F, B=1000,
                             alpha=0.05, plot = F, print = F,
@@ -53,7 +53,7 @@ Kest.boot <- function(timeBef, timeAf, count, avgIntW = NULL,
   y <- mod$Type1plot$time
   w <- mod$Type1plot$pdf[-1]
   if(alg == "binnednp"){
-    Ke <- binnednp::bw.dist.binned.boot(n, y, w, plot = F, pilot.type = 2)
+    # Ke <- binnednp::bw.dist.binned.boot(n, y, w, plot = F, pilot.type = 2)
   } else {
     Ke <- bw.dist.boot(n, y, w, plot = F, pilot.type = 2)
   }

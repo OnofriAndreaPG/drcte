@@ -17,7 +17,7 @@ boot.drcte <- function(obj, B = 499, units = NULL){
     if(numTreat == 1){
       newSample <- resample.cens(df, replace = T) # resampling cases
       newSample$newCounts <- rep(1, length(newSample[,1]))
-      newMod <- try(update(mod, formula = newCounts ~ L + R,
+      newMod <- try(update(obj, formula = newCounts ~ L + R,
                           data = newSample), silent = T)
     } else if(numTreat > 1){
       dfList <- by(df, treats, I)

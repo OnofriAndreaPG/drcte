@@ -248,7 +248,6 @@ fixed = c(NA, NA, NA), names = c("b", "d", "e"))
     text = "Log-logistic distribution of germination times",
     noParm = sum(is.na(fixed)),
     fixed = fixed)
-
     class(returnList) <- "drcMean"
     invisible(returnList)
 }

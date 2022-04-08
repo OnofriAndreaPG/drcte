@@ -1,3 +1,5 @@
+# This module contains functions to retreive bootstrap standard errors
+# for NPMLE fits
 confint.plot <- function(L, R, conf.level=.95,
                           B = 200,
                           timeEpsilon = 10^-8,
@@ -9,7 +11,7 @@ confint.plot <- function(L, R, conf.level=.95,
         message("Bootstrap Confidence intervals can be very time consuming.")
         utils::flush.console()
     }
-    fit0 <- drcte:::getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
+    fit0 <- getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
 
     ## just get the bootstrap value at a little bit before and a little bit after
     ## each interval time
@@ -30,9 +32,9 @@ confint.plot <- function(L, R, conf.level=.95,
     for (i in 1:B){
         cat("\r", i)
         dfi <- resample.cens(df, replace = list(TRUE))
-        fiti <- drcte:::getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
-        LOWER[i,] <- drcte:::predictCDF(fiti, times, method="right")$S
-        UPPER[i,] <- drcte:::predictCDF(fiti, times, method="left")$S
+        fiti <- getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
+        LOWER[i,] <- predictCDF(fiti, times, method="right")$S
+        UPPER[i,] <- predictCDF(fiti, times, method="left")$S
     }
 
     percci<-function(Ti, conf.level=.95){
@@ -78,9 +80,11 @@ confint.predict <- function(L, R, pred.times = NULL,
                             B = 200,
                             # seed = 1234,
                             groups = NULL, ...){
+  # Obtains standard errors for predictions with a NPMLE
+  # fit
   if (B < 10) stop("B must be at least 10")
   # if (!is.null(seed)) set.seed(seed)
-  fit0 <- drcte:::getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
+  fit0 <- getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
   # times <- sort(pred.times[pred.times >= 0])
   times <- pred.times[pred.times >= 0]
   n <-length(L)
@@ -97,8 +101,8 @@ confint.predict <- function(L, R, pred.times = NULL,
       cat("\r Resampling:", i)
       dfi <- resample.cens(df, replace = list(TRUE))
     }
-      fiti <- drcte:::getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
-      INTERPOL[i,] <- drcte:::predictCDF(fiti, times)$cdf
+      fiti <- getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
+      INTERPOL[i,] <- predictCDF(fiti, times)$cdf
   }
 
 
@@ -148,7 +152,7 @@ confint.summary <- function(L, R, pred.times = NULL,
                             cluster = NULL, ...){
   if (B < 10) stop("B must be at least 10")
   # if (!is.null(seed)) set.seed(seed)
-  fit0 <- drcte:::getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
+  fit0 <- getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)
   times <- sort(pred.times[pred.times >= 0])
   n <-length(L)
   nt <- length(times)
@@ -164,10 +168,9 @@ confint.summary <- function(L, R, pred.times = NULL,
       cat("\r Resampling:", i)
       dfi <- resample.cens(df, replace = list(TRUE))
     }
-      fiti <- drcte:::getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
-      INTERPOL[i,] <- drcte:::predictCDF(fiti, times)$cdf
+      fiti <- getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
+      INTERPOL[i,] <- predictCDF(fiti, times)$cdf
   }
-
 
   # percci<-function(Ti, conf.level=.95){
   #       ### get percentile bootstrap confidence intervals
