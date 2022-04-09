@@ -1,5 +1,5 @@
 # This module contains functions to retreive bootstrap standard errors
-# for NPMLE fits
+# for predictions from NPMLE fits
 confint.plot <- function(L, R, conf.level=.95,
                           B = 200,
                           timeEpsilon = 10^-8,
@@ -95,10 +95,10 @@ confint.predict <- function(L, R, pred.times = NULL,
   for (i in 1:B){
 
     if(!is.null(groups)){
-      cat("\r Cluster Resampling:", i)
+      message("\r Cluster Resampling:", i, appendLF = F)
       dfi <- resample.cens(df, cluster = groups, replace = list(TRUE, TRUE))
     } else {
-      cat("\r Resampling:", i)
+      message("\r Resampling:", i, appendLF = F)
       dfi <- resample.cens(df, replace = list(TRUE))
     }
       fiti <- getNPMLE(survival::Surv(dfi$L, dfi$R, type = "interval2") ~ 1)
@@ -136,7 +136,7 @@ confint.predict <- function(L, R, pred.times = NULL,
     # minupper<-binom.test(0,n,conf.level=conf.level)$conf.int[2]
     # upper[upper<minupper]<-minupper
     # upper[upper>1]<-1
-  cat("\n")
+  message("\n")
   boot.mean <- apply(INTERPOL, 2, mean)
   boot.se <- apply(INTERPOL, 2, sd)
   boot.upper <- apply(INTERPOL, 2, quantile, probs = 0.975, type = 9)

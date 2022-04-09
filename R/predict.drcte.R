@@ -171,6 +171,7 @@
           R <- rep(x[,2], x[,3])
           if(!is.null(groups)) gr <- rep(x[,length(x[1,])], x[,3]) else gr <- NULL
           cis <- confint.predict(L, R, times.pred, B = B, groups = gr)
+          # function confint.predict is in module surv.boot.R
           cis
         }
         # splitDoseVec <- by(doseVec, dataSet[,5], function(x) x)
