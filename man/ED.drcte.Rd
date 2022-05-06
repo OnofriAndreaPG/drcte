@@ -1,10 +1,9 @@
 \name{ED.drcte}
 \alias{ED.drcte}
 
-\title{Estimating the effective 'doses' for time-to-event models}
+\title{Estimating the quantiles for time-to-event models}
 
-\description{
-\code{ED} estimates the expected time to obtain a certain fraction of individuals with events, for one or more time-to-event curves. With 'type = "relative"' the above fraction is regarded as relative to the maximum observed fraction. This function is included for compatibility with the 'drc' package, but the use of the 'quantile()' function is recommended, instead.
+\description{ The function \code{ED} estimates the expected time to obtain a certain fraction (percentage) of individuals with events, for one or more time-to-event curves. With 'type = "relative"' the above fraction is regarded as relative to the maximum observed fraction. This function is included for compatibility with the 'drc' package, but the use of the 'quantile()' function is recommended, instead.
 }
 
 \usage{
@@ -45,8 +44,8 @@
 
 \details{
 There are several options for calculating confidence intervals through the argument \code{interval}. The option "none" (default) does not provide confidence intervals. The option "delta" results in asymptotical Wald-type confidence intervals (using the delta method and the normal distribution) and it is only available for parametric time-to-event models. The option "boot" provides bootraspped confidence intervals and it is only available for NPMLE or KDE curves; it may be rather slow. For (\code{\link{KDE}} models, the additional arguments \code{lower} and \code{upper} may be supplied. These arguments specify the lower and upper limits of the bisection method used to find the ED values.  The lower and upper limits need to be smaller/larger than the EDx level to be calculated. The default limits are 0 and 1}
-\value{
-  An invisible matrix containing the shown matrix with two or more columns, containing the estimates and the corresponding estimated standard errors and possibly lower and upper confidence limits. Or, alternatively, a list with elements that may be plugged directly into \code{parm} in the package \emph{multcomp} (in case the argument \code{multcomp} is TRUE).
+
+\value{ An invisible matrix containing the shown matrix with two or more columns, containing the estimates and the corresponding estimated standard errors and possibly lower and upper confidence limits. Or, alternatively, a list with elements that may be plugged directly into \code{parm} in the package \emph{multcomp} (in case the argument \code{multcomp} is TRUE).
 }
 
 \seealso{

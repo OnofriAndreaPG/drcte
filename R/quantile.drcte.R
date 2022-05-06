@@ -1,16 +1,33 @@
-# Function to get nonparametric quantiles for drcte (time-to-event) objects
-# with bootstrap SEs
+# Function to get quantiles for drcte (time-to-event) objects
+# with robust SEs. It is based on the ED.drcte function, that is
+# only exposed for compatibility with drc.
 # Last edited: 01/06/2021
 # 1. for parametric models: the EDfct function is used
 # 2. for NMPLE fit quantiles for grouped data are calculated (Farooq, 2005)
 # 3. for KDE fit quantiles are calculated by using a bisection method
 ##########################################################################
-quantile.drcte <- function(x, probs, restricted = FALSE,
-                           interval = c("none", "delta", "boot"),
-                           clevel = NULL, level = ifelse(!(interval == "none"), 0.95, NULL),
-                           bound = TRUE, od = FALSE, vcov. = vcov, # robust = false,
-                           display = TRUE, rate = F, B = 999, ...){
+quantile.drcte <- function(x, probs, restricted = FALSE, rate = F,
+                           interval = F, level = ifelse(!(interval == "none"), 0.95, NULL),
+                           robust = FALSE, B = 999, units = NULL,
+                           display = TRUE, ...){
   object <- x
+
+  # test whether units are in the original 'data.frame' or they
+  # are given as an external vector
+  if(!is.null(object$origData)){
+    object$origData <- data.frame(object$origData)
+  }
+
+  if(!missing(units)){
+    data <- object$origData
+    if(!is.null(data)){
+      tmp <- try(dplyr::select(data, {{ units }}), silent = T)
+      if(class(tmp) != "try-error"){
+        units <-  tmp[,1]
+      }
+    }
+  }
+
   if(restricted == F){
     type = "absolute"
     respLev <- probs
@@ -19,11 +36,34 @@ quantile.drcte <- function(x, probs, restricted = FALSE,
     respLev <- probs * 100
   }
 
+  # Menage interval argument (for backward compatibility)
+  if(is.logical(interval)){
+    if(interval == F){
+      interval <- "none"
+    } else {
+        if(object$fit$method == "Parametric") {
+          interval <- "delta"
+          }  else if(object$fit$method == "NPMLE") {
+            interval <- "boot"
+          } else {
+            interval <- "none"
+          }
+
+    }}
+
+  # Menage robust argument
+  if(object$fit$method == "Parametric" & robust == T & is.null(units)){
+    vcov <- sandwich(object)
+  } else if(object$fit$method == "Parametric" & !is.null(units)){
+    vcov <- vcovCL(object, cluster = units)
+  }
+
+
   ED(object, respLev, interval = interval,
-     clevel = clevel, level = level, type = type,
+     clevel = NULL, level = level, type = type,
      bound = bound, od = od, vcov. = vcov,
-     display = display,
-     rate = rate, B = B, seed = seed,  ...)
+     display = display, units = units,
+     rate = rate, B = B, seed = seed, ...)
 }
 
 # Other service functions #################################

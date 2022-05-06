@@ -26,8 +26,9 @@
   \item{level}{Confidence level.}
   \item{na.action}{function determining what should be done with missing values in 'newdata'. The default is to predict 'NA'.}
   \item{npmle.type}{character string relating to the type of prediction for NPMLE. For interval censored observations there is not a unique MLE for a specific time, and, therefore, predictions can be obtained by three methods: "interpolation" (default; predictions are sought on the line connecting the two points bounding the non-unique MLE interval), "left" (taking the left side of the non-unique MLE interval) or "right" (taking the right side of the non-unique MLE interval. The argument is neglected for parametric or kernel based time-to-event models.}
-  \item{coefs.}{this is only necessary for the predict.list method. It is a vector specifying the parameter estimates for the selected time-to-event model.}
-  \item{vcov.}{this is only necessary for the predict.list method, in the case when SEs are required for predictions. It represents the variance-covariance matrix for the model parameters in 'coefs'.}
+  \item{robust. }{a logical value. If TRUE, robust confidence interval are provided (see below for detail)}
+  \item{units}{a vector coding for randomisation units or other clustering structures. It causes a cluster robust standard error to be provided.}
+  \item{B}{Number of bootstrap resamples for bootstrap based inference}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 

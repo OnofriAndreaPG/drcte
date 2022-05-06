@@ -11,8 +11,9 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
     reference <- match.arg(reference)
     type <- match.arg(type)
 
-    # print(is.function(vcov.))
-    # stop()
+    # Intervals not yet available with KDE fits
+    if(object$fit$method == "KDE") interval <- "none"
+
 
     ## Checking 'respLev' vector ... should be numbers between 0 and 100
     if ( (type == "relative") && (bound) )
@@ -126,7 +127,7 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
     if (display)
     {
         cat("\n")
-        cat(paste("Estimated times-to-event", "\n", sep = ""))
+        cat(paste("Estimated quantiles", "\n", sep = ""))
         if (identical(interval, "boot"))
          {
             if(is.null(units)) {

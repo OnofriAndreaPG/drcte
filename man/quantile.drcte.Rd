@@ -4,38 +4,36 @@
 \title{Estimating quantiles for time-to-event models}
 
 \description{
-This function estimates the quantiles for time-to-events data, either for the whole sample (restricted = F) or only for the fraction of individuals with events (restricted = T). The quantiles for rates (the inverse of times) are also available, by using the 'rate = T' option}
+This function estimates the quantiles for time-to-events data, either for the whole sample (restricted = F) or only for the fraction of individuals with events (restricted = T). The quantiles for rates (the inverse of times) are also available, by using the 'rate = T' option. The quantiles represent the time/rate to reach a given fraction of individuals with event}
 
 \usage{
-  \method{quantile}{drcte}(x, probs, restricted = FALSE,
-            interval = c("none", "delta", "boot"),
-            clevel = NULL, level = ifelse(!(interval == "none"), 0.95, NULL),
-            bound = TRUE, od = FALSE, vcov. = vcov, # robust = false,
-            display = TRUE, rate = F, B = 1000, seed = 1234,  ...)
+  \method{quantile}{drcte}(x, probs, restricted = FALSE, rate = F,
+                           interval = F,
+                           level = ifelse(!(interval == "none"), 0.95, NULL),
+                           robust = FALSE, B = 999, units = NULL,
+                           display = TRUE, ...)
 }
 
 \arguments{
   \item{x}{an object of class 'drcte'.}
-  \item{probs}{a vector with the sought probabilities; the values must be included between 0 and 1. }
-  \item{restricted}{a logical value; if vector with the sought probabilities; the values must be included between 0 and 1. If FALSE, the whole sample is considered (the default), if TRUE, only the fraction of individuals with events are considered}
-  \item{interval}{character string specifying the type of confidence intervals to be supplied. The default is "none". See Details below for more explanation.}
-  \item{clevel}{character string specifying the curve id in case on estimates for a specific curve is requested. By default estimates are shown for all curves.}
+  \item{probs}{a vector with the sought probabilities; the values must be included between 0 and 1.}
+  \item{restricted}{a logical value: if FALSE, the quantiles are calculated for the whole sample (the default); if TRUE, only the fraction of individuals with events is considered.}
+    \item{rate}{a logical value: if FALSE quantiles for time-to-events are reported (default), if TRUE, rates (inverse of times) are reported.}
+
+  \item{interval}{a logical value: if TRUE, confidence intervals are supplied. The default is FALSE. See Details below for more explanation.}
   \item{level}{numeric. The level for the confidence intervals. The default is 0.95.}
-  \item{bound}{logical. If TRUE only ED values between 0 and 100\% are allowed.}
-  \item{od}{logical. If TRUE adjustment for over-dispersion is used.}
-  \item{vcov.}{function providing the variance-covariance matrix. \code{\link{vcov}} is the default, but \code{sandwich} is also an option (for obtaining robust standard errors).}
-  \item{display}{logical. If TRUE results are displayed. Otherwise they are not (useful in simulations).}
-  \item{rate}{Logical: if FALSE quantiles for time-to-events are reported (default), if TRUE, rates (inverse of times) are reported.}
+  \item{robust}{a logical value: if TRUE, robust standard error and confidence intervals are reported. The default is FALSE.}
   \item{B}{Number of bootstrap resamples for bootstrap based inference}
-  \item{seed}{seed for sampling methods}
-  \item{...}{see the details section below.}
+  \item{units}{a vector coding for randomisation units or other clustering structures. It causes a cluster robust standard error to be provided.}
+  \item{display}{a logical value: if TRUE (default), the results are displayed at the end of calculations.}
+  \item{\dots}{further arguments passed to or from other methods. In particular, it is used to pass environmental covariates, wherever necessary}
 }
 
 \details{
-There are several options for calculating confidence intervals through the argument \code{interval}. The option "none" (default) does not provide confidence intervals. The option "delta" results in asymptotical Wald-type confidence intervals (using the delta method and the normal distribution) and it is only available for parametric time-to-event models. The option "boot" provides bootraspped confidence intervals and it is only available for NPMLE or KDE curves; it may be rather slow. For (\code{\link{KDE}} models, the additional arguments \code{lower} and \code{upper} may be supplied. These arguments specify the lower and upper limits of the bisection method used to find the ED values.  The lower and upper limits need to be smaller/larger than the EDx level to be calculated. The default limits are 0 and 1}
+Quantiles for parametric models are calculated by using the inverse of the cumulative probability function. For NPMLE fits, it is assumed that events are evenly spread within each Turnbull interval and the quantiles are the values corresponding to the abscissas of the points where the horizontal line starting from the selected percentile crosses the time-to-event line. For KDE fits, quantiles are calculated from the time-to-event curve by the bisection method, which can be rather slow. If requested, confidence intervals are calculated, according to the type of time-to-event model. For parametric models, standard errors are calculated by using the delta method with Wald-type confidence intervals (normal distribution). If robust = TRUE, a sandwich estimator of the variance-covariance matrix is used, which is in its cluster-robust form, if a 'units' variable is provided, containing the coding fro Petri dishes, other grouping structures. For NPMLE fits, bootrapped confidence intervals are provided, based on B resamples (default to 1000); if the 'units' argument is provided, the cluster-robust version of the bootstrap is used. For KDE fits, standard errors and confidence intervals are not yet provided.}
+
 \value{
-  An invisible matrix containing the shown matrix with two or more columns, containing the estimates and the corresponding estimated standard errors and possibly lower and upper confidence limits. Or, alternatively, a list with elements that may be plugged directly into \code{parm} in the package \emph{multcomp} (in case the argument \code{multcomp} is TRUE).
-}
+  An invisible matrix containing the shown matrix with two or more columns, containing the estimates and the corresponding estimated standard errors and possibly lower and upper confidence limits.}
 
 \seealso{
 The 'ED()' function.
