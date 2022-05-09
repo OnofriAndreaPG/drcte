@@ -154,10 +154,12 @@ quantileNPMLE.boot <- function(start, end, count, probs,
 
   for (i in 1:B){
     if(!is.null(cluster)){
-      cat("\r Cluster Resampling:", i)
+      message("\r Cluster Resampling:", i, appendLF = F)
+      # cat("\r Cluster Resampling:", i)
       tmp <- resample.cens(df, cluster = gr, replace = list(TRUE, TRUE))
     } else {
-      cat("\r Resampling:", i)
+      message("\r Resampling:", i, appendLF = F)
+      # cat("\r Resampling:", i)
       tmp <- resample.cens(df, replace = list(TRUE))
     }
     fiti <- getNPMLE(survival::Surv(tmp$L, tmp$R, type = "interval2") ~ 1)
