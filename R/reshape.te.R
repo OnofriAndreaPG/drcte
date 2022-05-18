@@ -33,19 +33,23 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
   #   colnames(treat) <- names(data)[treat_cols]
   # }
 
-  # n.subjects: uses column or external
-  tmp <- try(dplyr::select(data, {{ n.subjects }}), silent = T)
-  if(class(tmp) == "try-error"){
-    if(is.null(n.subjects)) {
-      nViable <- apply(counts, 1, sum)
+  # n.subjects: uses data column or external vector
+  tmp1 <- try(is.vector(n.subjects), silent = T)
+  if(class(tmp1) != "try-error"){
+      if(tmp1){
+        if(length(n.subjects) == 1) nViable <- rep(n.subjects, length(counts[,1])) else nViable <- n.subjects
+       } else {
+       nViable <- apply(counts, 1, sum)
+       }}
+  else {
+    nam.n.subject <- deparse(substitute(n.subjects))
+    tmp2 <- try(dplyr::select(data, {{ nam.n.subject }}), silent = T)
+    if(class(tmp2) == "try-error") {
+      stop("Variable for the number of subjects not found in data")
       } else {
-
-      nViable <- n.subjects
+      nViable <- tmp2[,1]
       }
-  } else {
-    nViable <-  tmp[,1]
-  }
-
+    }
 
   df <- makeDrm.drcte(counts = counts, treat = treat, nViable = nViable,
                 moniTimes = monitimes)
@@ -115,7 +119,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
   } else {
     treatGroups <-  tmpGroups
   }
-  # Units could also be an external variable
+  # Units could be an external variable.
   tmp <- try(dplyr::select(data, {{ units }}), silent = T)
   if(class(tmp) == "try-error"){
     Dish <- units
@@ -123,7 +127,9 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
     Dish <-  as.factor(tmp[,1])
   }
 
-  # Number of viable seeds per dish
+  # Number of viable seeds per dish. It must be an external variable.
+  # It must be either length one,
+  # or it must be the same length as the number of levels in Dish
   tmp <- factor(Dish)
   nLev <- length(levels(tmp))
   tmp <- factor(tmp, levels = 1:nLev)
