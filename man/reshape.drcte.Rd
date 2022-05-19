@@ -25,7 +25,7 @@ ungroup_te(data, counts)
   \item{count_cols}{a numeric vector, specifying the positions (not names) of the columns containing the counts in 'data'}
   \item{treat_cols}{a vector, specifying the positions/names of the columns containing the treatment levels in 'data'}
   \item{monitimes}{a numeric vector of monitoring times. Must be of same length as 'count_cols'}
-  \item{n.subjects}{a numeric vector listing the number of viable seeds for each container (e.g., Petri dish). It may be either of length one (if it is the same for all randomisation units) or it must have same length as the number of rows in 'data' and 'treat_cols'. With the function 'melt_te()', it is also possible to pass a reference to the name of a variable in 'data', containing the number of individuals. If missing, it is assumed that all individuals experienced the event.}
+  \item{n.subjects}{a numeric vector listing the number of viable seeds for each container (e.g., Petri dish). It may be either of length one (if it is the same for all randomisation units) or it must have same length as the number of rows in 'data' and 'treat_cols'. With the function 'melt_te()', it is also possible to pass a reference to the name of a variable in 'data', containing the number of individuals. If missing, it is assumed that all individuals experienced the event and there is no 'cured' fraction.}
   \item{grouped}{logical: specifying whether the output should be in LONG GROUPED or LONG UNGROUPED format}
 }
 \details{
