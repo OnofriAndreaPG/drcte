@@ -295,7 +295,8 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
           plotPoints <- cbind(x1, y2)
           plotType <- "s"
         }
-      } else{
+        # print(plotPoints)
+      } else {
         plotPoints <- cbind(x1, y1)
         # plotType <- "p"
         if(kde.points == T) plotType <- "p" else plotType <- "n"

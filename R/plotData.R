@@ -27,11 +27,36 @@
   ## Constructing the observed data
   if(method == "NPMLE"){
     # To display the NPMLE (pkg. interval)
-    # To be completed with several methods
     dose <- object$ICfit$npmle$time
     resp <- object$ICfit$npmle$cdf
     curveid <- object$ICfit$npmle[,1]
     plotid <- as.numeric(object$ICfit$npmle[,1])
+
+    # To be completed with several methods
+    x1 <- dose
+    y1 <- resp
+    y2 <- as.numeric(unlist( tapply(y1, curveid, function(i) c(i[-1], i[length(i)])) ))
+    xmid <- as.numeric(unlist( tapply(x1, curveid, function(i) c(0, (i[-1] + i[-length(i)])/2, i[length(i)])) ))
+    ymid <- as.numeric(unlist( tapply(y2, curveid, function(i) c(0, i)) ))
+    curveidmid <- tapply(y2, curveid, function(i) c(0, i))
+    tms <- as.numeric(unlist(lapply(curveidmid, length)) )
+    curveidmid <- rep(names(curveidmid), tms)
+
+    plotidmid <- tapply(y2, plotid, function(i) c(0, i))
+    tms <- as.numeric(unlist(lapply(plotidmid, length)) )
+    plotidmid <- rep(names(plotidmid), tms)
+
+
+    if(npmle.type == "interpolation"){
+        plotPoints <- data.frame(x1, y1, curveid, plotid)
+    } else if(npmle.type == "midpoint"){
+        plotPoints <- data.frame(xmid, ymid, curveidmid, plotidmid)
+    } else if(npmle.type == "right"){
+        plotPoints <- data.frame(x1, y1, curveid, plotid)
+    } else if(npmle.type == "left"){
+        plotPoints <- data.frame(x1, y2, curveid, plotid)
+    }
+
   } else {
     # To display naive end-point estimator (upd. 21/12/21)
     dose <- dataList[["dose"]]
@@ -43,10 +68,11 @@
     }
 
     plotid <- dataList[["plotid"]]
+    plotPoints <- data.frame(dose, resp, curveid, plotid)
   }
 
   # Capire se voglio plottare tutti i dati...
-  plotPoints <- data.frame(dose, resp, curveid, plotid)
+
   # print(plotPoints)
   # print(c(doseName, "CDF", curveidName))
   if(is.null(curveidName)) curveidName <- "curveid"

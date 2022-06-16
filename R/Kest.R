@@ -4,7 +4,6 @@
 # These functions do the following:
 # 1. Take TURNBULL'S intervals (Type1plot) to cumulate several assays
 # 2. Use the resulting gouped data to smooth a kernel distribution function
-
 Kest <- function(timeBef, timeAf, count,
                  gplugin, type = "N", alg = "internal"){
 
@@ -103,13 +102,13 @@ bw.dist <- function(n, y, w, li = NULL, gplugin, type="N",confband=F, B=1000,
 
     K2 <- function(x) (x^2-1)*stats::dnorm(x)
     K4 <- function(x) ((x^2-3)*(x^2-1)-2*x^2)*stats::dnorm(x)
-    K6_0 <- kedd::kernel.fun(0,deriv.order=6,kernel="gaussian")$kx
-    K8_0 <- kedd::kernel.fun(0,deriv.order=8,kernel="gaussian")$kx
+    K6_0 <- kernel.fun(0,deriv.order=6,kernel="gaussian")$kx
+    K8_0 <- kernel.fun(0,deriv.order=8,kernel="gaussian")$kx
     L1 <- function(w,h) -sum( sapply( 1:k,function(i) sum(K2((t[i]-t)/h)*w[i]*w) ) )/h^3 # Af1=-psi2
     L2 <- function(w,h) sum( sapply( 1:k,function(i) sum(K4((t[i]-t)/h)*w[i]*w) ) )/h^5 # Af2=psi4
-    L3 <- function(w,h) -sum( sapply( 1:k,function(i) sum(kedd::kernel.fun((t[i]-t)/h,deriv.order=6,kernel="gaussian")$kx*w[i]*w) ) )/h^7
-    L4 <- function(w,h) sum( sapply( 1:k,function(i) sum(kedd::kernel.fun((t[i]-t)/h,deriv.order=8,kernel="gaussian")$kx*w[i]*w) ) )/h^9
-    L5 <- function(w,h) -sum( sapply( 1:k,function(i) sum(kedd::kernel.fun((t[i]-t)/h,deriv.order=10,kernel="gaussian")$kx*w[i]*w) ) )/h^11
+    L3 <- function(w,h) -sum( sapply( 1:k,function(i) sum(kernel.fun((t[i]-t)/h,deriv.order=6,kernel="gaussian")$kx*w[i]*w) ) )/h^7
+    L4 <- function(w,h) sum( sapply( 1:k,function(i) sum(kernel.fun((t[i]-t)/h,deriv.order=8,kernel="gaussian")$kx*w[i]*w) ) )/h^9
+    L5 <- function(w,h) -sum( sapply( 1:k,function(i) sum(kernel.fun((t[i]-t)/h,deriv.order=10,kernel="gaussian")$kx*w[i]*w) ) )/h^11
 
   } else {
     t <- pars$t
