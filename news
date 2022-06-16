@@ -1,0 +1,3 @@
+## Changes in 'drcte'
+
+2022-06-16: Functions from package 'kedd' have been included in 'drcte', to remove the dependency on 'keed', that is no longer available at CRAN for R 4.2.0
