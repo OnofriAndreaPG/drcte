@@ -22,11 +22,13 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
 
 
   # Load the counts as positions (not as a reference)
-  counts <- data[, count_cols]
+  # Edited: 4/7/22: tibble needs to be transformed as data.frame, to avoid errors
+  counts <- as.data.frame(data[, count_cols])
   colnames(counts) <- monitimes
 
-  # treat_cols: load as position or name
+  # treat_cols: loads as position or name
   treat <- dplyr::select(data, {{ treat_cols }})
+  treat <- as.data.frame(treat)
   # treat <- data[, treat]
   # if(is.vector(treat) | is.factor(treat)){
   #   treat <- data.frame(treat)
@@ -37,6 +39,7 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
   tmp1 <- try(is.vector(n.subjects), silent = T)
   if(class(tmp1) != "try-error"){
       if(tmp1){
+
         if(length(n.subjects) == 1) nViable <- rep(n.subjects, length(counts[,1])) else nViable <- n.subjects
        } else {
        nViable <- apply(counts, 1, sum)
@@ -62,6 +65,7 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
     df <- df_surv
     df <- df[,1:(length(treat) + 3)]
   }
+  row.names(df) <- 1:nrow(df)
   return(df)
 }
 
@@ -119,6 +123,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
   } else {
     treatGroups <-  tmpGroups
   }
+
   # Units could be an external variable.
   tmp <- try(dplyr::select(data, {{ units }}), silent = T)
   if(class(tmp) == "try-error"){

@@ -95,7 +95,6 @@ pshifts = NULL, varcov = NULL){
   callDetail <- match.call()
 
   ## Handling the 'formula', 'curveid' and 'data' arguments ##########
-
   anName <- deparse(substitute(curveid))  # storing name for later use MOVED UP
   if (length(anName) > 1) {anName <- anName[1]}  # to circumvent the behaviour of 'substitute' in do.call("multdrc", ...)
   if (nchar(anName) < 1) {anName <- "1"}  # in case only one curve is analysed
@@ -116,7 +115,6 @@ pshifts = NULL, varcov = NULL){
   dose <- model.matrix(mt, mf)[,-c(1)]  # with no intercept
   xDim <- ncol(as.matrix(dose))
   resp <- model.response(mf, "numeric")
-
 
   if (is.null(resp))
   {
@@ -270,7 +268,6 @@ pshifts = NULL, varcov = NULL){
 
 
     ## Handling "pmodels" argument
-
     pmodelsList <- list()
     if (missing(pmodels))
     {
@@ -478,7 +475,7 @@ pshifts = NULL, varcov = NULL){
     #     }
     #     isfi <- is.finite(dose)  # removing infinite dose values
 
-    # Combining curves ###############
+    # Combining curves (NPMLE fit) ###############
         if (identical(type, "event"))
         {
           # If necessary, several curves are combined by using different methods
@@ -493,7 +490,6 @@ pshifts = NULL, varcov = NULL){
           NPcdfList <- list()
 
           NPcdfList <- plyr::dlply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf]))
-
           # naiveStart <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type4)
           # naiveEnd <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type3)
           # npmle <- plyr::ddply(df, 3:(nColdf - 1), function(x) NPcdf(x[,1], x[,2], x[,nColdf])$Type1plot)
@@ -504,7 +500,7 @@ pshifts = NULL, varcov = NULL){
           npmle <- plyr::ldply(NPcdfList, function(x) x$Type1plot)
           icFit <- plyr::ldply(NPcdfList, function(x) x$Type1)
 
-          # Crea un nuovo curveid, che combina le eventuali variabili aggiuntive
+          # New curveid, combining the environmental variables, if any
           ssSel2 <- naiveStart
           ssSel <- naiveEnd
           assayNoNew <- ssSel$idVar
@@ -526,8 +522,6 @@ pshifts = NULL, varcov = NULL){
 
     ## Calculating initial estimates for the parameters #########
     ## using the self starter
-
-
     if(!noSSfct)
     {
       startMat <- matrix(0, numAss, numNames)
@@ -636,7 +630,6 @@ pshifts = NULL, varcov = NULL){
     # parm2mat: function to convert parameter vector into matrix
     # drcFct: mean function
     # cm: NULL ?
-
     multCurves <- modelFunction(dose, parm2mat, drcFct, cm, assayNoOld, upperPos, fct$"retFct",
                                 doseScaling, respScaling, isFinite = rep(TRUE, lenData), pshifts)
 
@@ -787,13 +780,17 @@ pshifts = NULL, varcov = NULL){
     # parmVec: parameter names with curveid value
 
     if(fctName == "NPMLE()"){
-      ## NPMLE fit ####
+      ## this is not optimisisng, more returning the NPMLE fit
       nlsFit <- list()
       retObj <- NPcdfList
       retList1 <- lapply(retObj, function(x) x$SurvObjSum)
       retList2 <- lapply(retObj, function(x) x$SurvObj)
-      names(retList1) <- levels(factor(assayNoOld))
-      names(retList2) <- levels(factor(assayNoOld))
+      # Corrected on 4/7/22: bug that scrambled the naming of curve levels
+      # names(retList1) <- levels(factor(assayNoOld))
+      # names(retList2) <- levels(factor(assayNoOld))
+      names(retList1) <- unique(assayNoOld)
+      names(retList2) <- unique(assayNoOld)
+
       plotFctList <- lapply(retObj, function(x) x$Fh) #x$Type1plot)
       names(plotFctList) <- levels(factor(assayNoOld))
 
@@ -809,11 +806,12 @@ pshifts = NULL, varcov = NULL){
       nlsFit$icfitObjFull <- retList2
 
     } else if(fctName == "KDE()"){
-      ## KDE fit ####
+      ## KDE fit
       nlsFit <- list()
       count <- origResp #data[,varNames0[1]]
       timeBef <- origDose[,1] #data[,varNames0[2]]
       timeAf <- origDose[,2] # data[,varNames0[3]]
+
       fitData <- data.frame(count, timeBef, timeAf, groups = factor(assayNo))
 
       if(fct$bw == "boot"){
@@ -824,7 +822,10 @@ pshifts = NULL, varcov = NULL){
       # print(retObj$)
       pars <- unlist(lapply(retObj, function(x) x$h))
       plotFctList <- lapply(retObj, function(x) x$Fh)
-      names(plotFctList) <- levels(factor(assayNoOld))
+      # Corrected on 4/7/22: bug that scrambled the naming of curve levels
+      # names(plotFctList) <- levels(factor(assayNoOld))
+      names(plotFctList) <- unique(assayNoOld)
+      # print(plotFctList)
       nlsFit$convergence <- TRUE
       nlsFit$par <- pars
       nlsFit$value <- NULL

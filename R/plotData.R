@@ -29,23 +29,31 @@
     # To display the NPMLE (pkg. interval)
     dose <- object$ICfit$npmle$time
     resp <- object$ICfit$npmle$cdf
-    curveid <- object$ICfit$npmle[,1]
-    plotid <- as.numeric(object$ICfit$npmle[,1])
+    # curveid <- object$ICfit$npmle[,1]
+    # Edited on 4/7/22: in order to avoid that curveid levels are scrambled
+    curveid <- mod1$ICfit$npmle[,1]
+    curveid <- factor(curveid, levels = unique(as.character(curveid)))
+    plotid <- as.numeric(curveid)
 
-    # To be completed with several methods
+    # Several fitting methods
     x1 <- dose
     y1 <- resp
-    y2 <- as.numeric(unlist( tapply(y1, curveid, function(i) c(i[-1], i[length(i)])) ))
-    xmid <- as.numeric(unlist( tapply(x1, curveid, function(i) c(0, (i[-1] + i[-length(i)])/2, i[length(i)])) ))
-    ymid <- as.numeric(unlist( tapply(y2, curveid, function(i) c(0, i)) ))
-    curveidmid <- tapply(y2, curveid, function(i) c(0, i))
+    y2 <- as.numeric(unlist( tapply(y1, plotid, function(i) c(i[-1], i[length(i)])) ))
+
+    y3 <- as.numeric(unlist( tapply(y1, plotid, function(i) c(0, i[-1], i[length(i)])) ))
+    x3 <- as.numeric(unlist( tapply(x1, plotid, function(i) c(0, i + 0.001)) ))
+
+    xmid <- as.numeric(unlist( tapply(x1, plotid, function(i) c(0, (i[-1] + i[-length(i)])/2, i[length(i)])) ))
+    ymid <- as.numeric(unlist( tapply(y2, plotid, function(i) c(0, i)) ))
+    curveidmid <- tapply(y2, plotid, function(i) c(0, i))
     tms <- as.numeric(unlist(lapply(curveidmid, length)) )
-    curveidmid <- rep(names(curveidmid), tms)
+    curveidmid <- as.numeric(rep(names(curveidmid), tms))
+    curveidmid <- unique(curveid)[curveidmid]
 
     plotidmid <- tapply(y2, plotid, function(i) c(0, i))
     tms <- as.numeric(unlist(lapply(plotidmid, length)) )
     plotidmid <- rep(names(plotidmid), tms)
-
+    # print(plotidmid)
 
     if(npmle.type == "interpolation"){
         plotPoints <- data.frame(x1, y1, curveid, plotid)
@@ -54,7 +62,7 @@
     } else if(npmle.type == "right"){
         plotPoints <- data.frame(x1, y1, curveid, plotid)
     } else if(npmle.type == "left"){
-        plotPoints <- data.frame(x1, y2, curveid, plotid)
+        plotPoints <- data.frame(x3, y3, curveidmid, plotidmid) #, curveid, plotid)
     }
 
   } else {
