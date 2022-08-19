@@ -226,9 +226,8 @@ pshifts = NULL, varcov = NULL){
         separate <- FALSE
     }
 
-
-
     if (separate) {
+      # Separate fitting #####
        # return(idrm(dose, resp, assayNo, wVec, fct, type))
        # return(idrm(dose, resp, assayNoOld, wVec, fct, type, control))
        # First of all, check whether separate = TRUE. In this case,
@@ -238,19 +237,25 @@ pshifts = NULL, varcov = NULL){
          grepl("W1.3(", fctName, fixed=TRUE) |
          grepl("W2.3(", fctName, fixed=TRUE) |
          grepl("G.3(",  fctName, fixed=TRUE) ){
-         returnList <- by(data, assayNoOld,
-                         function(g) drmte_sep1(formula = formula,
+
+        ## edited on 18/08/22: retransform into a factor assayNoOld
+        # to avoid problems when the dataset is subsetted
+         returnList <- by(data, factor(assayNoOld),
+                         function(g)  drmte_sep1(formula = formula,
                                                data = g, subset = subset,
                                                fct = fct, start = start, na.action = na.action,
                                                control = control,
                                                lowerl = lowerl, upperl = upperl))
       } else {
-        returnList <- by(data, assayNoOld,
+        ## edited on 18/08/22: retransform into a factor assayNoOld
+        # to avoid problems when the dataset is subsetted
+        returnList <- by(data, factor(assayNoOld),
                          function(g) drmte_sep2(formula = formula,
                                                 data = g, subset = subset,
                                                 fct = fct, start = start, na.action = na.action,
                                                 control = control,
-                                                lowerl = lowerl, upperl = upperl))
+                                                lowerl = lowerl, upperl = upperl)
+                           )
 
       }
       sepList <- returnList

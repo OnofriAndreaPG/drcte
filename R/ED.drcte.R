@@ -26,8 +26,7 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
 
     if(object$fit$method != "KDE" & object$fit$method != "NPMLE"){
 
-        choice <- object$fct$name
-
+    choice <- object$fct$name
         # class(object) <- "drc"
         if(choice  == "LL.4" |  choice == "LL.3" | choice == "LL.2" |
            choice  == "LN.4" |  choice == "LN.3" | choice == "LN.2" |
@@ -64,11 +63,11 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
                 # Da fare
             }
         }
-        rn <- row.names(EDmat)
-        if(type == "absolute") rowProb <- respLev*100 else rowProb <- respLev
-        rn3 <- paste(sub(":.*", x = gsub("e:", "", rn, fixed=T), replacement = ""), rowProb, sep = ":")
-        rn3 <- paste(rn3, "%", sep = "")
-        row.names(EDmat) <- rn3
+        # rn <- row.names(EDmat)
+        # if(type == "absolute") rowProb <- respLev*100 else rowProb <- respLev
+        # rn3 <- paste(sub(":.*", x = gsub("e:", "", rn, fixed=T), replacement = ""), rowProb, sep = ":")
+        # rn3 <- paste(rn3, "%", sep = "")
+        # row.names(EDmat) <- rn3
 
 
     } else if(object$fit$method == "NPMLE"){
@@ -126,8 +125,14 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
     }
     if (display)
     {
-        cat("\n")
+      cat("\n")
+
+      if(type == "absolute") {
         cat(paste("Estimated quantiles", "\n", sep = ""))
+      } else {
+        cat(paste("Estimated quantiles (restricted to germinated fraction)", "\n", sep = ""))
+      }
+
         if (identical(interval, "boot"))
          {
             if(is.null(units)) {

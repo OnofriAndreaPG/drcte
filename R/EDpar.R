@@ -98,8 +98,10 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
             }
             EDmat[rowIndex, 1] <- EDval
             EDmat[rowIndex, 2] <- sqrt(dEDval %*% varCov %*% dEDval)
+            # dimNames[rowIndex] <- paste(strParm[i], respLev[j], sep = "")
+            if(type == "absolute") rowProb <- respLev[j]*100 else rowProb <- respLev[j]
+            dimNames[rowIndex] <- paste(strParm[i], rowProb, sep = "")
 
-            dimNames[rowIndex] <- paste(strParm[i], respLev[j], sep = "")
             rowIndex <- rowIndex + 1
         }
         } else {
@@ -163,7 +165,11 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
         colNames <- c(colNames, "Lower", "Upper")
     }
     dimnames(EDmat) <- list(dimNames, colNames)
-    rownames(EDmat) <- paste("e", rownames(EDmat), sep = ":")
+
+    # Edited on 19/08/2022
+    #rownames(EDmat) <- paste("e", rownames(EDmat), sep = ":")
+    rownames(EDmat) <- paste(rownames(EDmat), "%", sep = "")
+    if(type == "relative") rownames(EDmat) <- paste(rownames(EDmat), "_R", sep = "")
     resPrint(EDmat, "Estimated effective doses", interval, intLabel, display = display)
 
     ## require(multcomp, quietly = TRUE)
@@ -179,11 +185,12 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
         colnames(EDmat1VC) <- namesVec
         rownames(EDmat1VC) <- namesVec
 
+
         invisible(list(#EDdisplay = EDmat,
 #                       EDmultcomp = parm(EDmat[, 1], (dEDmat %*% vcMat %*% t(dEDmat))[1:nrow(EDmat), 1:nrow(EDmat), drop = FALSE])))
                         EDmultcomp = parm(EDmat1, EDmat1VC)))
     } else {
-        invisible(EDmat)
+      invisible(EDmat)
     }
 }
 

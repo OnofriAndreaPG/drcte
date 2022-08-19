@@ -48,6 +48,7 @@ drmte_sep1 <- function(formula, data, subset, fct,
   cureMod2$dataList$dose <- unique(timeAf[is.finite(timeAf)])
   cureMod2$fct <- linear.mean()
 
+
   # Deciding which model is to be used
   if( all(class(cureMod) != "try-error")) {
     p <- try( summary(cureMod), silent=T)
@@ -62,14 +63,13 @@ drmte_sep1 <- function(formula, data, subset, fct,
   if(all(class(cureMod) != "try-error")){
     result <- cureMod
   } else {
-
     result <- cureMod2
     result$data <- data.frame(timeBef, timeAf, nSeeds,
                               curveid = 1, orig.curveid = 1, weights = 1)
     if(result$fit$hessian == 0) result$fit$hessian <- NaN
   }
-
-  result
+  result$origData <- data #Added on 19/08/2022
+  return(result)
 }
 
 drmte_sep2 <- function(formula, data, subset, fct,
@@ -87,6 +87,7 @@ drmte_sep2 <- function(formula, data, subset, fct,
                  na.action = na.action,
                  control = control,
                  lowerl = lowerl, upperl = upperl), silent = T)
+
   test <- try(summary(fitMod))
   # if(data$temp == 4) class(fitMod) <- "try-error"
   # Preparing and returning the results

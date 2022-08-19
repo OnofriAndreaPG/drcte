@@ -29,9 +29,10 @@
     # To display the NPMLE (pkg. interval)
     dose <- object$ICfit$npmle$time
     resp <- object$ICfit$npmle$cdf
-    # curveid <- object$ICfit$npmle[,1]
+
     # Edited on 4/7/22: in order to avoid that curveid levels are scrambled
-    curveid <- mod1$ICfit$npmle[,1]
+    # curveid <- object$ICfit$npmle[,1]
+    curveid <- object$ICfit$npmle[,1]
     curveid <- factor(curveid, levels = unique(as.character(curveid)))
     plotid <- as.numeric(curveid)
 
@@ -39,7 +40,6 @@
     x1 <- dose
     y1 <- resp
     y2 <- as.numeric(unlist( tapply(y1, plotid, function(i) c(i[-1], i[length(i)])) ))
-
     y3 <- as.numeric(unlist( tapply(y1, plotid, function(i) c(0, i[-1], i[length(i)])) ))
     x3 <- as.numeric(unlist( tapply(x1, plotid, function(i) c(0, i + 0.001)) ))
 

@@ -61,7 +61,8 @@ quantile.drcte <- function(x, probs, restricted = FALSE, rate = F,
 
   ED(object, respLev, interval = interval,
      clevel = NULL, level = level, type = type,
-     bound = bound, od = od, vcov. = vcov,
+     # bound = bound,
+     od = od, vcov. = vcov,
      display = display, units = units,
      rate = rate, B = B, seed = seed, ...)
 }

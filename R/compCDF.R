@@ -1,6 +1,6 @@
 compCDF <- function(obj, scores = c("wmw", "logrank1","logrank2"),
                     B = 199, type = c("naive", "permutation"),
-                    units = NULL, upperl, lowerl){
+                    units = NULL, upperl, lowerl, display = TRUE){
 
   if(!any(class(obj) == "drcte")) {
      stop("Method works only with 'drcte' objects")
@@ -21,17 +21,19 @@ compCDF <- function(obj, scores = c("wmw", "logrank1","logrank2"),
 
   if(obj$fit$method == "NPMLE"){
     scores <- match.arg(scores)
-    compCDFnp(obj = obj, scores = scores, B = B, units = units)
+    compCDFnp(obj = obj, scores = scores, B = B, units = units,
+              display = display)
   } else if(obj$fit$method == "KDE"){
-    compCDFkde(obj = obj, B = B, units = units)
+    compCDFkde(obj = obj, B = B, units = units, display = display)
   } else {
     type <- match.arg(type)
-    compCDFpar(obj = obj, B = B, units = units, type = type)
+    compCDFpar(obj = obj, B = B, units = units, type = type,
+               display = display)
   }
 }
 
-compCDFpar <- function(obj,
-                       B, units, type = type){
+compCDFpar <- function(obj, B, units, type = type,
+                       display){
   # Fit a null model
   args <- getCall(obj)
   call <- args[names(args) != "curveid" & names(args) != "pmodels" &
@@ -47,24 +49,24 @@ compCDFpar <- function(obj,
   pval <- pchisq(LRT, n.df, lower.tail = F)
 
   if(type == "naive"){
-    cat("\n")
-    cat("\n")
-    TEST <- "Likelihood ratio test"
-    null.phrase <- "NULL: time-to-event curves are equal"
-    alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
-
-    cat(TEST)
-    cat("\n")
-    cat(null.phrase)
-    cat("\n")
-    cat("\n")
-    cat(paste("Observed LR value: ", round(LRT, 4)))
-    cat("\n")
-    cat(paste("Degrees of freedom: ", n.df))
-    cat("\n")
-    cat(paste("P-value: ", ifelse(pval < 0.00001, format(pval, scientific = T), pval)))
-    cat("\n")
-
+    if(display){
+      cat("\n")
+      cat("\n")
+      TEST <- "Likelihood ratio test"
+      null.phrase <- "NULL: time-to-event curves are equal"
+      alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
+      cat(TEST)
+      cat("\n")
+      cat(null.phrase)
+      cat("\n")
+      cat("\n")
+      cat(paste("Observed LR value: ", round(LRT, 4)))
+      cat("\n")
+      cat(paste("Degrees of freedom: ", n.df))
+      cat("\n")
+      cat(paste("P-value: ", ifelse(pval < 0.00001, format(pval, scientific = T), pval)))
+      cat("\n")
+    }
     pout <- list()
     pout$method <- "LRT"
     pout$scores <- NULL
@@ -78,8 +80,8 @@ compCDFpar <- function(obj,
   } else {
     # permutation approach
     LRTb <- rep(NA, B)
-
     if(is.null(units)){
+
       # Individual based permutation
       ncol <- length(obj$data[1,])
       group <- as.character(rep(obj$data[,ncol - 1], obj$data[,ncol - 3]))
@@ -88,11 +90,19 @@ compCDFpar <- function(obj,
       df <- data.frame(L = L, R = R, group = group, count = rep(1, length(L)))
       message("Permuting individuals")
       for(b in 1:B){
-        message(".", appendLF = F)
+        # If sampling individuals, the fit may not succeed!
+        txtMes <- paste(round(b/B*100, 0), "%\r", sep ="")
+        message(txtMes, appendLF = F)
         newList <- sample(group, replace = FALSE)
         df$group <- newList
-        objNew <- update(obj, formula = count ~ L + R, curveid = group,
-           data = df)
+        objNew <- try(update(obj, formula = count ~ L + R,
+                         curveid = group, data = df), silent = T)
+        if(any(class(objNew) == "try-error")){
+          # Update 18/08/2022. In some cases, a parametric model
+          # cannot be fit to the permuted sample
+          message(" \r", appendLF = F)
+          stop("\r Permutation based inference was not successful. See the documentation for more detail")
+        }
         # obj2New <- update(objNew, curveid = NULL)
         # obj2New <- update(obj2, formula = count ~ L + R, curveid = NULL, data = df)
         args <- getCall(objNew)
@@ -109,13 +119,20 @@ compCDFpar <- function(obj,
                    cluster = cluster)
       message("Permuting groups")
         for(b in 1:B){
-          message(".", appendLF = F)
+          txtMes <- paste(round(b/B*100, 0), "%\r", sep ="")
+          message(txtMes, appendLF = F)
           pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
           pr$group <- obj$data[[5]]
           pr <- pr[order(pr$cluster, pr$timeBef), ]
           newList <- as.character(pr$group)
-          objNew <- update(obj,
-                   curveid = group, data = pr)
+          objNew <- try(update(obj,
+                   curveid = group, data = pr), silent = T)
+          if(any(class(objNew) == "try-error")){
+            # Update 18/08/2022. In some cases, a parametric model
+            # cannot be fit to the permuted sample
+            message("\r", appendLF = F)
+            stop("\r Permutation based inference was not successful. See the documentation for more detail")
+            }
           # obj2New <- update(objNew, curveid = NULL)
           args <- getCall(objNew)
           call <- args[names(args) != "curveid" & names(args) != "pmodels" &
@@ -125,28 +142,26 @@ compCDFpar <- function(obj,
         }
     }
     pvalb <- (sum(LRTb > LRT) + 1)/(B + 1)
-    cat("\n")
-    cat("\n")
-    TEST <- "Likelihood ratio test (permutation based)"
-    null.phrase <- "NULL: time-to-event curves are equal"
-    alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
-
-    cat(TEST)
-    cat("\n")
-    cat(null.phrase)
-    cat("\n")
-    cat("\n")
-    cat(paste("Observed LR value: ", round(LRT, 4)))
-    cat("\n")
-    cat(paste("Degrees of freedom: ", n.df))
-    cat("\n")
-    cat(paste("Naive P-value: ", ifelse(pval < 0.00001, format(pval, scientific = T), pval)))
-    cat("\n")
-    cat(paste("Permutation P-value (B = ", B,"): ", round(pvalb,6), sep = ""))
-    cat("\n")
-
-    pout <- list()
-
+    if(display){
+      cat("\r")
+      # cat("\n")
+      TEST <- "Likelihood ratio test (permutation based)"
+      null.phrase <- "NULL: time-to-event curves are equal"
+      alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
+      cat(TEST)
+      cat("\n")
+      cat(null.phrase)
+      cat("\n")
+      cat("\n")
+      cat(paste("Observed LR value: ", round(LRT, 4)))
+      cat("\n")
+      cat(paste("Degrees of freedom: ", n.df))
+      cat("\n")
+      cat(paste("Naive P-value: ", ifelse(pval < 0.00001, format(pval, scientific = T), pval)))
+      cat("\n")
+      cat(paste("Permutation P-value (B = ", B,"): ", round(pvalb,6), sep = ""))
+      cat("\n")
+    }
     pout <- list()
     pout$method <- "LRT"
     pout$scores <- NULL
@@ -159,7 +174,6 @@ compCDFpar <- function(obj,
   }
   return(invisible(pout))
 }
-
 
 # compCDFkde.old <- function(obj,
 #                        alternative= c("two.sided", "less", "greater"),
@@ -277,7 +291,7 @@ compCDFpar <- function(obj,
 
 compCDFkde <- function(obj,
                        alternative= c("two.sided", "less", "greater"),
-                       B = 50, units){
+                       B = 50, units, display){
 
   obj2 <- update(obj, curveid = NULL) # Fitting cumulato
 
@@ -331,7 +345,8 @@ compCDFkde <- function(obj,
     for(b in 1:B){
     # Get a permutation sample (individual based)
     # cat("Resampling: \t")
-    message(".", appendLF = F)
+    txtMes <- paste(round(b/B*100, 0), "%\r", sep ="")
+    message(txtMes, appendLF = F)
     ncol <- length(obj$data[1,])
     group <- as.character(rep(obj$data[,ncol - 1], obj$data[,ncol - 3]))
     L <- rep(obj$data[, 1], obj$data[,ncol - 3])
@@ -339,8 +354,14 @@ compCDFkde <- function(obj,
     newGroup <- sample(group, replace = FALSE)
     df <- data.frame(L = L, R = R, group = newGroup, count = rep(1, length(L)))
     df <- dplyr::arrange(group_te(df), group)
-    objNew <- drmte(count ~ L + R, fct = KDE(),
-                 curveid = group, data = df) # Fitting separato
+    objNew <- try(drmte(count ~ L + R, fct = KDE(),
+                 curveid = group, data = df), silent = T) # Fitting separato
+    if(any(class(objNew) == "try-error")){
+      # Update 18/08/2022. In some cases, a KDE model
+      # cannot be fit to the permuted sample
+      message("\r", appendLF = F)
+      stop("\r Permutation based inference was not successful. See the documentation for more detail")
+      }
     obj2New <- update(objNew, curveid = NULL) # Fitting cumulato
     Db[b] <- calcDstat(objNew, obj2New)$obsD
   }
@@ -353,13 +374,22 @@ compCDFkde <- function(obj,
                    cluster = cluster)
     message("Permuting groups")
     for(b in 1:B){
-      message(".", appendLF = F)
+      txtMes <- paste(round(b/B*100, 0), "%\r", sep ="")
+      message(txtMes, appendLF = F)
       pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
       pr$group <- obj$data[[5]]
       pr <- pr[order(pr$cluster, pr$timeBef), ]
       newList <- as.character(pr$group)
-      objNew <- update(obj,
-                   curveid = group, data = pr)
+      objNew <- try(update(obj,
+                   curveid = group, data = pr), silent = T)
+      objNew <- try(update(obj,
+                   curveid = group, data = pr), silent = T)
+      if(any(class(objNew) == "try-error")){
+        # Update 18/08/2022. In some cases, a parametric model
+        # cannot be fit to the permuted sample
+        message("\r", appendLF = F)
+        stop("\r Permutation based inference was not successful. See the documentation for more detail")
+        }
       obj2New <- update(objNew, curveid = NULL) # Fitting cumulato
       Db[b] <- calcDstat(objNew, obj2New)$obsD
   }
@@ -368,26 +398,25 @@ compCDFkde <- function(obj,
 
   pval <- (sum(Db > D) + 1)/(B + 1)
   ## Describes the results
-  cat("\n")
-  TEST<-"Permutation test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
-  null.phrase <- "NULL HYPOTHESIS: time-to-event curves are equal"
-  alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
-
-  tabRes <- data.frame("level" = as.character(ug), n = ni, D = Dlist$Dvals)
-  row.names(tabRes) <- 1:length(tabRes[,1])
-  cat(TEST)
-  cat("\n")
-  cat(null.phrase)
-  cat("\n")
-  cat("\n")
-  print(tabRes)
-  cat("\n")
-  cat(paste("Observed D value = ", round(Dlist$obsD, 4)))
-  cat("\n")
-  cat(paste("P value = ", round(pval, 6)))
-  cat("\n")
-
-
+  if(display){
+    cat("\r")
+    TEST<-"Permutation test based on a Cramer-von-Mises type distance (Barreiro-Ures et al., 2019)"
+    null.phrase <- "NULL HYPOTHESIS: time-to-event curves are equal"
+    alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
+    tabRes <- data.frame("level" = as.character(ug), n = ni, D = Dlist$Dvals)
+    row.names(tabRes) <- 1:length(tabRes[,1])
+    cat(TEST)
+    cat("\n")
+    cat(null.phrase)
+    cat("\n")
+    cat("\n")
+    print(tabRes)
+    cat("\n")
+    cat(paste("Observed D value = ", round(Dlist$obsD, 4)))
+    cat("\n")
+    cat(paste("P value = ", round(pval, 6)))
+    cat("\n")
+  }
   # pout$data.name <- paste("{",L.name,",",R.name,"}"," by ",group.name,sep="")
     pout <- list()
     pout$method <- "Kramer - Von Mises distance"
@@ -404,13 +433,12 @@ compCDFnp <- function(obj,
     scores,
     rho = NULL,
     alternative = c("two.sided", "less", "greater"),
-    B, units) {
+    B, units, display) {
 
   # L.name <- This is missing. To be added
   cluster <- units
   R.name <- obj$dataList$names$dName
   group.name <- obj$dataList$names$cNames
-
 
   ## find NPMLE based on all the data (ignoring group membership)
   objNull <- update(obj, curveid = NULL)
@@ -497,7 +525,6 @@ compCDFnp <- function(obj,
     #    set.seed(1234321)
     ti <- rep(NA, B)
 
-
     for (i in 1:B) {
       if(is.null(cluster)){
         newList <- sample(group, replace = FALSE)
@@ -518,32 +545,30 @@ compCDFnp <- function(obj,
   }
   # print(t0)
   ## TEST describes results
-  TEST <- "Exact"
-  if (scores=="logrank1" || scores=="logrank2") TEST <- paste(TEST,"Logrank")
-  else if (scores=="wmw")  TEST <- paste(TEST,"Wilcoxon")
-  TEST <- paste(TEST,"test (permutation form)")
-  if (scores == "logrank1") TEST <- paste(TEST, " (Sun's scores)")
-  if (scores == "logrank2") TEST <- paste(TEST, " (Finkelstein's scores)")
-  null.phrase <- "NULL: time-to-event curves are equal"
-  alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
-
-  tabRes <- data.frame("level" = as.character(ug), n = N, Scores = U)
-  row.names(tabRes) <- 1:length(tabRes[,1])
-
-  cat(TEST)
-  cat("\n")
-  cat(null.phrase)
-  cat("\n")
-  cat("\n")
-  print(tabRes)
-  cat("\n")
-  cat(paste("Observed T value: ", round(t0, 4)))
-  cat("\n")
-  cat(paste("Permutation P-value (B = ", B,"): ", round(pval, 6), sep = ""))
-  cat("\n")
-
-
-  # pout$data.name <- paste("{",L.name,",",R.name,"}"," by ",group.name,sep="")
+  if(display){
+    TEST <- "Exact"
+    if (scores=="logrank1" || scores=="logrank2") TEST <- paste(TEST,"Logrank")
+    else if (scores=="wmw")  TEST <- paste(TEST,"Wilcoxon")
+    TEST <- paste(TEST,"test (permutation form)")
+    if (scores == "logrank1") TEST <- paste(TEST, " (Sun's scores)")
+    if (scores == "logrank2") TEST <- paste(TEST, " (Finkelstein's scores)")
+    null.phrase <- "NULL: time-to-event curves are equal"
+    alt.phrase <- "ALTERNATIVE: time-to-event curves are not equal"
+    tabRes <- data.frame("level" = as.character(ug), n = N, Scores = U)
+    row.names(tabRes) <- 1:length(tabRes[,1])
+    cat(TEST)
+    cat("\n")
+    cat(null.phrase)
+    cat("\n")
+    cat("\n")
+    print(tabRes)
+    cat("\n")
+    cat(paste("Observed T value: ", round(t0, 4)))
+    cat("\n")
+    cat(paste("Permutation P-value (B = ", B,"): ", round(pval, 6), sep = ""))
+    cat("\n")
+  }
+    # pout$data.name <- paste("{",L.name,",",R.name,"}"," by ",group.name,sep="")
     pout <- list()
     pout$method <- scores
     pout$scores <- cc

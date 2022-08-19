@@ -8,7 +8,7 @@ This function is used to compare time-to-event curves for different experimental
 }
 \usage{
 compCDF(obj, alt = NULL, scores = c("wmw", "logrank1", "logrank2"),
-B = 199, type = c("naive", "permutation"), units = NULL)
+B = 199, type = c("naive", "permutation"), units = NULL, display = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,14 +22,17 @@ This argument is only meaningful for NPMLEs of time-to-event curves and it speci
 Number of permutations for permutation tests
 }
 \item{type}{
-For parametric models, comparisons are based on a Likelihood Ratio Test (LRT). The argument type specifies whether P-levels should be calculated by using a 'naive' chi-square approximation, or a 'permutation' approach. It defailts to 'naive' and it is neglected for NPMLE and KDE fits, which always use the permutation approach.
+For parametric models, comparisons are based on a Likelihood Ratio Test (LRT). The argument type specifies whether P-levels should be calculated by using a 'naive' chi-square approximation, or a 'permutation' approach. It defaults to 'naive' and it is neglected for NPMLE and KDE fits, which always use the permutation approach.
 }
 \item{units}{
 A vector for the clustering units (e.g. Petri dishes or other containers for seed germination/emergence assays). When type = 'permutation' and 'units' is given, the permutation approach is performed at the units level and not at the individuals level.
 }
+\item{display}{
+logical. If TRUE, results are displayed, otherwise, they are not (useful in simulations).
+}
 }
 \details{
-This function is used to compare time-to-event curves fitted with the function 'drmte()' in the 'drcte' package, where treatment factors have been included by using the 'curveid' argument. The type of test statistic depends on the fitted model, whether it is a parametric time-to-event model or a NPMLE or a KDE. With parametric time-to-event models a Likelihood Ratio test is used, with NPMLE, weighted log-rank statistics are used, while for KDEs, a Cramér‐von Mises type distance among curves is used. In all cases, the grouped-permutation approach is used to determine the p-level for the null (i.e. the curves are not significantly different from each other).
+This function is used to compare time-to-event curves fitted with the function 'drmte()' in the 'drcte' package, where treatment factors have been included by using the 'curveid' argument. The type of test statistic depends on the fitted model, whether it is a parametric time-to-event model or a NPMLE or a KDE. With parametric time-to-event models a Likelihood Ratio test is used, with NPMLE, weighted log-rank statistics are used, while for KDEs, a Cramér‐von Mises type distance among curves is used. In all cases, this function is used to determine the p-level for the null (i.e. the curves are not significantly different from each other). WARNING: a permutation based approach may not necessarily work with parametric and KDE models; indeed, the permuted sample can be such that a model cannot be fitted into it. We are working a solution for these cases, but, in the meantime, we recommend that the user resorts to the naive inference approach whenever a permutation based approach does not work.
 }
 \value{
 \item{method}{The test statistic used for the comparison}
