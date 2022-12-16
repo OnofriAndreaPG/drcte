@@ -20,7 +20,7 @@
       data <- object$origData
       if(!is.null(data)){
         tmp <- try(dplyr::select(data, {{ units }}), silent = T)
-        if(class(tmp) != "try-error"){
+        if(!is(tmp, "try-error")){
           units <-  tmp[,1]
           }
       }
@@ -253,7 +253,8 @@
   return(retMat)
 }
 
-predict.llogistic <- function(object, newdata, coefs, vcov. = NULL){
+"predict.llogistic" <- function(object, newdata, coefs, vcov. = NULL,
+                                ...){
   if (missing(newdata)) stop ("No newdata have been given")
   if (missing(coefs)) stop ("No coefficients have been given")
   class(object) <- "list"
@@ -261,7 +262,8 @@ predict.llogistic <- function(object, newdata, coefs, vcov. = NULL){
 }
 
 
-predict.list <- function(object, newdata, coefs, vcov. = NULL){
+"predict.list" <- function(object, newdata, coefs, vcov. = NULL,
+                           ...){
 
   if (is.null(object$fct)) stop ("No 'fct' component exist in object")
   if (missing(newdata)) stop ("No newdata have been given")

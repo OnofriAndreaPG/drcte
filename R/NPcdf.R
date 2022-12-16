@@ -146,18 +146,18 @@ getNPMLE <- function (formula, data,...) {
     ## Copied starting from here:
 
     call <- match.call()
-        m <- match.call(expand.dots = FALSE)
-        m$... <- NULL
-        Terms <- terms(formula, "strata")
-        ord <- attr(Terms, "order")
+    m <- match.call(expand.dots = FALSE)
+    m$... <- NULL
+    Terms <- terms(formula, "strata")
+    ord <- attr(Terms, "order")
         if (length(ord) & any(ord != 1))
             stop("Interaction terms are not valid for this function")
-        m$formula <- Terms
-        m[[1]] <- as.name("model.frame")
-        m <- eval(m, parent.frame())
-        n <- nrow(m)
+    m$formula <- Terms
+    m[[1]] <- as.name("model.frame")
+    m <- eval(m, parent.frame())
+    n <- nrow(m)
 
-        ## left-hand-side of formula is "response"
+    ## left-hand-side of formula is "response"
         Y <- model.extract(m, "response")
         casewt <- model.extract(m, "weights")
         if (is.null(casewt))
@@ -174,7 +174,7 @@ getNPMLE <- function (formula, data,...) {
         nstrata <- length(group)
         sbind <- function(x,y){
             if (is.vector(x) & is.vector(y)){
-                 if (class(x)=="list" & class(y)=="list"){
+                 if (is(x, "list") & is(y, "list")){
                      out<-list(x,y)
                  } else out<-c(x,y)
             } else if (is.matrix(x) & is.matrix(y)) out<-cbind(x,y)

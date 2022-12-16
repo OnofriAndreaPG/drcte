@@ -934,7 +934,6 @@ pshifts = NULL, varcov = NULL){
     nlsDF <- numObs - length(startVec)
 
     ## Constructing a plot function #########################
-
     if(fctName != "NPMLE()"){
     ## Picking parameter estimates for each curve.
     # Does only work for factors not changing within a curve!
@@ -977,6 +976,8 @@ pshifts = NULL, varcov = NULL){
     parmMat <- pmFct(fixedParm)  # (estMethod$"parmfct")(nlsFit) )
 
     ## Defining the plot function
+    # print(obj)
+    obj <- parmMat # Added on 1/12/2022. To check!
     pfFct <- function(obj)
     {
         plotFct <- function(dose)

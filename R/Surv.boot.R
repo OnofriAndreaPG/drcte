@@ -150,6 +150,7 @@ confint.summary <- function(L, R, pred.times = NULL,
                             B = 200,
                             # seed = 1234,
                             cluster = NULL, ...){
+  groups <- cluster
   if (B < 10) stop("B must be at least 10")
   # if (!is.null(seed)) set.seed(seed)
   fit0 <- getNPMLE(survival::Surv(L, R, type = "interval2") ~ 1)

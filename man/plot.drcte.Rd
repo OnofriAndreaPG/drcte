@@ -9,7 +9,7 @@
 \usage{
 
   \method{plot}{drcte}(x, ..., add = FALSE, level = NULL, shading = TRUE,
-  type = c("all"),
+  type = "all",
   npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
   npmle.points = F, kde.points = T,
   broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE,

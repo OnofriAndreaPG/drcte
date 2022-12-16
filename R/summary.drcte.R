@@ -63,7 +63,7 @@ summary.drcte <- function(object,
       data <- object$origData
       if(!is.null(data)){
         tmp <- try(dplyr::select(data, {{ units }}), silent = T)
-        if(class(tmp) != "try-error"){
+        if(!is(tmp, "try-error")){
           units <-  tmp[,1]
           }
       }
@@ -72,7 +72,7 @@ summary.drcte <- function(object,
       vcovNew <- vcovCL(object, cluster = units)
       retMat <- coeftest(object, vcov. = vcovNew)
       class(object) <- "drc"
-      sumObj <- summary(object, od = od, pool = pool)
+      sumObj <- summary(object) #, od = od, pool = pool)
       sumObj$coefficients <- retMat[,]
       sumObj$varMat <- vcovNew
       sumObj$robust <- "Cluster robust sandwich SEs"
@@ -97,7 +97,8 @@ summary.drcte <- function(object,
 }
 
 summary.drcteList <- function(object,
-                          robust = FALSE, units = NULL, ...)
+                          robust = FALSE,
+                          units = NULL, ...)
 {
 
   # Edited 18/08/2022: Added robust and cluster robust SEs

@@ -9,7 +9,8 @@ importFrom("stats", "as.formula", "binom.test", "coef", "complete.cases",
            "model.matrix", "model.response", "model.weights",
            "na.omit", "nls", "optim", "pchisq", "plogis", "pnorm", "ppoints",
            "predict", "residuals", "terms", "deriv", "lm", "sortedXyData", "printCoefmat",
-           "na.pass", "qnorm", "qt", "vcov", "quantile", "sd", "update")
+           "na.pass", "qnorm", "qt", "vcov", "quantile", "sd", "update",
+           "dnorm")
 importFrom("utils", "head", "tail", "stack")
 importFrom("survival", "strata")
 importFrom("grDevices", "gray")
@@ -18,7 +19,7 @@ importFrom("dplyr", "arrange", "select")
 importFrom("tidyr", "pivot_longer")
 importFrom("multcomp", "parm")
 importFrom("MASS", "ginv")
-# importFrom("binnednp", "bw.dist.binned", "bw.dist.binned.boot")
+importFrom("methods", "is")
 
 # Exports: general
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
@@ -55,5 +56,3 @@ S3method(print, summary.drcte)
 S3method(bread, drcte)
 S3method(estfun, drcte)
 S3method(vcov, drcte)
-# S3method(estfun, drc)
-# S3method(bread, drcte)

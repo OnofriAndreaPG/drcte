@@ -12,7 +12,7 @@
   drmteControl(constr = FALSE, errorm = TRUE, maxIt = 500, method="BFGS",
   noMessage = FALSE, relTol = 1e-07, rmNA=FALSE, useD = FALSE,
   trace = FALSE, otrace = FALSE, warnVal = -1, dscaleThres = 1e-15, rscaleThres = 1e-15,
-  conCheck = TRUE, KDEmethod = "boot")
+  conCheck = TRUE)
 }
 
 \arguments{
@@ -34,7 +34,6 @@
   \item{dscaleThres}{numeric value specifying the threshold for dose scaling.}
   \item{rscaleThres}{numeric value specifying the threshold for response scaling.}
   \item{conCheck}{logical, switching on/off handling of control measurements.}
-  \item{KDEmethod}{character, sets the method for the estimation of optimal bandwidth in KDE.}
 }
 
 \value{

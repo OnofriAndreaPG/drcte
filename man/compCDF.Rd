@@ -7,8 +7,9 @@ Compare time-to-event curves
 This function is used to compare time-to-event curves for different experimental treatments. The apprach depends on the type of time-to-event curves, i.e., parametric, NPMLE and KDE (see details)
 }
 \usage{
-compCDF(obj, alt = NULL, scores = c("wmw", "logrank1", "logrank2"),
-B = 199, type = c("naive", "permutation"), units = NULL, display = TRUE)
+compCDF(obj, scores = c("wmw", "logrank1", "logrank2"),
+B = 199, type = c("naive", "permutation"), units = NULL, upperl,
+lowerl, display = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -26,6 +27,10 @@ For parametric models, comparisons are based on a Likelihood Ratio Test (LRT). T
 }
 \item{units}{
 A vector for the clustering units (e.g. Petri dishes or other containers for seed germination/emergence assays). When type = 'permutation' and 'units' is given, the permutation approach is performed at the units level and not at the individuals level.
+}
+\item{upperl}{Only for parametric models: a numeric vector of upper limits for all parameters in the model (the default corresponds to infinity for all parameters).
+}
+\item{lowerl}{Only for parametric models: a numeric vector of lower limits for all parameters in the model (the default corresponds to minus infinity for all parameters).
 }
 \item{display}{
 logical. If TRUE, results are displayed, otherwise, they are not (useful in simulations).

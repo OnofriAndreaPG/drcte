@@ -1,5 +1,5 @@
 plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
-   type = c("average", "all", "bars", "none", "obs", "confidence"),
+   type = "all",
    npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
    npmle.points = F, kde.points = T,
    broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE, gridsize = 100,

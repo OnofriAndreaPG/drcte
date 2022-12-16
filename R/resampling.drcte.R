@@ -14,7 +14,7 @@ resamp <- function(data = NULL, cluster = NULL, replace) {
   if(!is.null(cluster)){
     clusterPos <- cluster
     inDF <- try(dplyr::select(data, {{ cluster }}), silent = T)
-    if(class(inDF) == "try-error") stop("Group variables not in data")
+    if(is(inDF, "try-error")) stop("Group variables not in data")
     cluster <- inDF
   }
 
@@ -120,7 +120,7 @@ simulateTE <- function(start, end, count, B = 1, groups = NULL){
     }
 
     startSam <- newSam$L; endSam <- newSam$R
-    obj <- drcte:::getNPMLE(survival::Surv(startSam, endSam, type = "interval2") ~ 1)
+    obj <- getNPMLE(survival::Surv(startSam, endSam, type = "interval2") ~ 1)
     newStart <- obj$intmap[1,]
     newEnd <- obj$intmap[2,]
     n <- sum(count)

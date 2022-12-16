@@ -8,12 +8,12 @@
 }
 
 \usage{
-  summary.drcte(object, robust = FALSE, units = NULL,
+  \method{summary}{drcte}(object, robust = FALSE, units = NULL,
   type = c("sandwich", "bootstrap", "jackknife"), ...)
 }
 
 \arguments{
-  \item{object}{an object of class 'drc'.}
+  \item{object}{an object of class 'drcte'.}
   \item{robust}{Logical: if TRUE, robust sandwich standard errors are printed instead of the asymptotic formula. Defaults to TRUE if 'units' or 'type' is given. It is neglected for non-parametric time-to-event models}
   \item{units}{Optional vector that identifies groups of subjects, used in computing a cluster robust standard error. Like model variables, this is searched for in the dataset pointed to by the data argument. It is neglected for non-parametric time-to-event models.}
   \item{type}{Type of robust standard error. It defaults to 'sandwich' that is the only available method at moment. Bootstrap and jackknife standard errors are under study. It is neglected for non-parametric time-to-event models}

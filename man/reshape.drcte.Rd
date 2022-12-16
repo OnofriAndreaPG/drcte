@@ -27,6 +27,10 @@ ungroup_te(data, counts)
   \item{monitimes}{a numeric vector of monitoring times. Must be of same length as 'count_cols'}
   \item{n.subjects}{a numeric vector listing the number of viable seeds for each container (e.g., Petri dish). It may be either of length one (if it is the same for all randomisation units) or it must have same length as the number of rows in 'data' and 'treat_cols'. With the function 'melt_te()', it is also possible to pass a reference to the name of a variable in 'data', containing the number of individuals. If missing, it is assumed that all individuals experienced the event and there is no 'cured' fraction.}
   \item{grouped}{logical: specifying whether the output should be in LONG GROUPED or LONG UNGROUPED format}
+  \item{counts}{the name of a numeric vector listing the counts of events in each interval. It should be available in data}
+  \item{resp}{For 'decumulate_te(): the response variable, i.e. a vector of cumulative counts/proportions}
+  \item{units}{For 'decumulate_te(): a label for Petri dishes or other containers}
+  \item{type}{For 'decumulate_te(): character string, it is "count" or "proportion", depending on what it is given in the argument 'resp'}
 }
 \details{
 Details are given in \url{https://www.statforbiology.com/2021/stat_drcte_3-reshapingdata/}

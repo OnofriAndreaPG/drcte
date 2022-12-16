@@ -290,7 +290,7 @@ compCDFpar <- function(obj, B, units, type = type,
 # }
 
 compCDFkde <- function(obj,
-                       alternative= c("two.sided", "less", "greater"),
+                       alternative = c("two.sided", "less", "greater"),
                        B = 50, units, display){
 
   obj2 <- update(obj, curveid = NULL) # Fitting cumulato

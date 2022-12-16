@@ -9,9 +9,11 @@
 \usage{
   \method{ED}{drcte}(object, respLev, interval = c("none", "delta", "boot"),
   clevel = NULL, level = ifelse(!(interval == "none"), 0.95, NULL),
-  reference = c("control", "upper"), type = c("absolute", "relative"), lref, uref,
-  bound = TRUE, od = FALSE, vcov. = vcov, display = TRUE, pool = TRUE, logBase = NULL,
-  multcomp = FALSE, intType = "confidence", rate = F, B = 1000, seed = 1234, ...)
+  reference = c("control", "upper"), type = c("relative", "absolute"),
+  lref, uref, bound = TRUE, od = FALSE, vcov. = vcov, display = TRUE,
+  pool = TRUE, logBase = NULL, multcomp = FALSE,
+  intType = "confidence", rate = F, B = 200,
+  seed = 1234, units = NULL, ...)
 }
 
 \arguments{
@@ -39,6 +41,7 @@
   \item{rate}{Logical: if FALSE quantiles for time-to-events are reported (default), if TRUE, rates (inverse of times) are reported.}
   \item{B}{Number of bootstrap resamples for bootstrap based inference}
   \item{seed}{seed for sampling methods}
+  \item{units}{The name of a variable, coding for the experimental units, within which the observational units are clustered (e.g., Pretri dishes in germination assays)}
   \item{...}{see the details section below.}
 }
 

@@ -8,7 +8,7 @@ Kernel estimator for the cumulative distribution function
 This function provides the kernel estimator for the distribution function for interval‐grouped data.
 }
 \usage{
-KDE()
+KDE(bw = c("AMISE", "boot"))
 KDE.fun(x, start, end, count, h)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -18,6 +18,7 @@ KDE.fun(x, start, end, count, h)
   \item{end}{for each assessment interval, this is the end time}
   \item{count}{for each assessment interval, this is the number of events}
   \item{h}{bandwidth value}
+  \item{bw}{Method for bandwidth selection}
 }
 \details{
 The function 'KDE.fun()' provides the kernel estimator for the distribution function, as modified for interval-grouped data. The equation is:

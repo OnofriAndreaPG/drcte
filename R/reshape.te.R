@@ -37,7 +37,7 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
 
   # n.subjects: uses data column or external vector
   tmp1 <- try(is.vector(n.subjects), silent = T)
-  if(class(tmp1) != "try-error"){
+  if(!is(tmp1, "try-error")){
       if(tmp1){
 
         if(length(n.subjects) == 1) nViable <- rep(n.subjects, length(counts[,1])) else nViable <- n.subjects
@@ -47,7 +47,7 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
   else {
     nam.n.subject <- deparse(substitute(n.subjects))
     tmp2 <- try(dplyr::select(data, {{ nam.n.subject }}), silent = T)
-    if(class(tmp2) == "try-error") {
+    if(is(tmp2, "try-error")) {
       stop("Variable for the number of subjects not found in data")
       } else {
       nViable <- tmp2[,1]
@@ -90,7 +90,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
   #   count <- data[ ,which(names(data) == respName)]
   # }
   tmp <- try(dplyr::select(data, {{ resp }}), silent = T)
-  if(class(tmp) == "try-error"){
+  if(is(tmp, "try-error")){
     count <- resp
   } else {
     if(length(tmp[1,]) > 1) stop("The response variable is not unique")
@@ -107,7 +107,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
   #   moniTime <- data[ ,which(names(data) == tmp.name)]
   # }
   tmp <- try(dplyr::select(data, {{ monitimes }}), silent = T)
-  if(class(tmp) == "try-error"){
+  if(is(tmp, "try-error")){
     moniTime <- monitimes
   } else {
     if(length(tmp[1,]) > 1) stop("The time variable is not unique")
@@ -118,7 +118,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
   tmpGroups <- try(dplyr::select(data, {{ treat_cols }}), silent = T)
   # print(class(tmpGroups))
   # print(treat_cols)
-  if(class(tmpGroups) == "try-error"){
+  if(is(tmpGroups, "try-error")){
     treatGroups <- treat_cols
   } else {
     treatGroups <-  tmpGroups
@@ -126,7 +126,7 @@ decumulate_te <- function(data = NULL, resp, treat_cols, monitimes, units, n.sub
 
   # Units could be an external variable.
   tmp <- try(dplyr::select(data, {{ units }}), silent = T)
-  if(class(tmp) == "try-error"){
+  if(is(tmp, "try-error")){
     Dish <- units
   } else {
     Dish <-  as.factor(tmp[,1])
@@ -206,7 +206,7 @@ ungroup_te <- function(data, counts) {
   data <- as.data.frame(data)
   dfr <- data["anName" > 0,]
   tmp <- try(dplyr::select(dfr, {{ counts }}), silent = T)
-  if(class(tmp) == "try-error"){
+  if(is(tmp, "try-error")){
     # Counts is not in data
     cond <- "external"
     frequency <- counts
@@ -230,7 +230,7 @@ ungroup_te <- function(data, counts) {
 }
 
 group_te <- function(data) {
-  tmp <- dplyr::group_by(data, across())
+  tmp <- dplyr::group_by(data, dplyr::across())
   tmp <- dplyr::summarise(tmp, count = dplyr::n())
   as.data.frame(tmp)
 }

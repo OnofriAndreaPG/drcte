@@ -22,7 +22,7 @@ quantile.drcte <- function(x, probs, restricted = FALSE, rate = F,
     data <- object$origData
     if(!is.null(data)){
       tmp <- try(dplyr::select(data, {{ units }}), silent = T)
-      if(class(tmp) != "try-error"){
+      if(!is(tmp, "try-error")){
         units <-  tmp[,1]
       }
     }
@@ -62,9 +62,11 @@ quantile.drcte <- function(x, probs, restricted = FALSE, rate = F,
   ED(object, respLev, interval = interval,
      clevel = NULL, level = level, type = type,
      # bound = bound,
-     od = od, vcov. = vcov,
+     # od = od,
+     # seed = seed,
+     vcov. = vcov,
      display = display, units = units,
-     rate = rate, B = B, seed = seed, ...)
+     rate = rate, B = B, ...)
 }
 
 # Other service functions #################################

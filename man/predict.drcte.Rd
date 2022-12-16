@@ -1,5 +1,6 @@
 \name{predict.drcte}
 \alias{predict.drcte}
+\alias{predict.list}
 
 \title{Prediction}
 
@@ -8,14 +9,12 @@
 }
 
 \usage{
-
   \method{predict}{drcte}(object, newdata, se.fit = FALSE,
   interval = FALSE,
   level = 0.95, na.action = na.pass,
-  npmle.type = "interpolation",
+  npmle.type = c("interpolation", "left", "right", "midpoint"),
   robust = FALSE, units = NULL, B = 200, ...)
-
-  \method{predict}{list}(object, newdata, coefs, vcov. = NULL)
+  \method{predict}{list}(object, newdata, coefs, vcov. = NULL, ...)
 }
 
 \arguments{
@@ -26,9 +25,11 @@
   \item{level}{Confidence level.}
   \item{na.action}{function determining what should be done with missing values in 'newdata'. The default is to predict 'NA'.}
   \item{npmle.type}{character string relating to the type of prediction for NPMLE. For interval censored observations there is not a unique MLE for a specific time, and, therefore, predictions can be obtained by three methods: "interpolation" (default; predictions are sought on the line connecting the two points bounding the non-unique MLE interval), "left" (taking the left side of the non-unique MLE interval) or "right" (taking the right side of the non-unique MLE interval. The argument is neglected for parametric or kernel based time-to-event models.}
-  \item{robust. }{a logical value. If TRUE, robust confidence interval are provided (see below for detail)}
+  \item{robust}{a logical value. If TRUE, robust confidence interval are provided (see below for detail)}
   \item{units}{a vector coding for randomisation units or other clustering structures. It causes a cluster robust standard error to be provided.}
   \item{B}{Number of bootstrap resamples for bootstrap based inference}
+  \item{coefs}{The coefficients of a parametric fit}
+  \item{vcov.}{Variance-covariance matrix}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 
@@ -52,11 +53,12 @@ Zeileis A, Koell S, Graham N (2020) Various Versatile Variances: An Object-Orien
 \author{Andrea Onofri, borrowing code from Christian Ritz}
 
 \examples{
+library(drcte)
 data(chickweed)
 modb <- drmte(count ~ start + end,
                data=chickweed,
                fct = LL.3())
-predict(modb, se.fit = TRUE, interval = T,
+predict(modb, se.fit = TRUE, interval = TRUE,
 newdata = data.frame(time = c(1, 10, 100, 250)))
 }
 

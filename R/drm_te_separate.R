@@ -136,7 +136,7 @@ drmte_sep2 <- function(formula, data, subset, fct,
   }
   ## Defining the ED function
   edfct <- function(parm, respl = 50, reference, type, ...){
-    parmVec[notFixed] <- parm
+    parmVec <- parm
     EDp <- Inf
     return(list(EDp, NA))
   }
