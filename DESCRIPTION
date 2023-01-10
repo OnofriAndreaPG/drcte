@@ -2,7 +2,7 @@ Package: drcte
 Date: 2022-12-14
 Type: Package
 Title: Statistical approaches for time-to-event data in agriculture
-Version: 1.0.20
+Version: 1.0.30
 Depends: R (>= 4.0.0), drc
 Imports: methods, plyr, nor1mix, graphics, stats, mclust, survival, sandwich, lmtest, dplyr, multcomp, tidyr, MASS
 Author: Andrea Onofri <andrea.onofri@unipg.it>

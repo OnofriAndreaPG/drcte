@@ -41,7 +41,8 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
         if(!is.null(units)){
              vcov. <- sandwich::vcovCL(object, cluster = units)
         }
-
+        # When I call EDpar, respLev is within ]0,1[, except for the
+        # internal drc functions
         EDmat <- suppressWarnings(EDpar(object = object,
                  respLev = probLev, #ifelse(type == "absolute", respLev/100, respLev),
                  interval = interval, clevel = clevel, level = level,
@@ -63,11 +64,11 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
                 # Da fare
             }
         }
-        # rn <- row.names(EDmat)
-        # if(type == "absolute") rowProb <- respLev*100 else rowProb <- respLev
-        # rn3 <- paste(sub(":.*", x = gsub("e:", "", rn, fixed=T), replacement = ""), rowProb, sep = ":")
-        # rn3 <- paste(rn3, "%", sep = "")
-        # row.names(EDmat) <- rn3
+        rn <- row.names(EDmat)
+        if(type == "absolute") rowProb <- respLev*100 else rowProb <- respLev
+        rn3 <- paste(sub(":.*", x = gsub("e:", "", rn, fixed=T), replacement = ""), rowProb, sep = ":")
+        rn3 <- paste(rn3, "%", sep = "")
+        row.names(EDmat) <- rn3
 
 
     } else if(object$fit$method == "NPMLE"){

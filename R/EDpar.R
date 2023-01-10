@@ -8,6 +8,7 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
     type <- match.arg(type)
 
     ## Checking 'respLev' vector ... should be numbers between 0 and 100
+    # print(respLev)
     if ( (type == "relative") && (bound) )
     {
         if (any(respLev <= 0 | respLev >= 100))
