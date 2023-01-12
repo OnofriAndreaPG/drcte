@@ -236,7 +236,8 @@ pshifts = NULL, varcov = NULL){
          grepl("LN.3(", fctName, fixed=TRUE) |
          grepl("W1.3(", fctName, fixed=TRUE) |
          grepl("W2.3(", fctName, fixed=TRUE) |
-         grepl("G.3(",  fctName, fixed=TRUE) ){
+         grepl("G.3(",  fctName, fixed=TRUE) |
+         grepl("loglogistic",  fctName, fixed=TRUE) ){
 
         ## edited on 18/08/22: retransform into a factor assayNoOld
         # to avoid problems when the dataset is subsetted

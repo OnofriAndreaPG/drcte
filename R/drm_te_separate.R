@@ -9,6 +9,7 @@ drmte_sep <- function(formula, curveid, data, subset, fct,
 drmte_sep1 <- function(formula, data, subset, fct,
                       start, na.action, control, lowerl,
                       upperl) {
+  # print("1")
   # This function fits a time-to-event model. If the attempt fails,
   # a simpler model is fitted, where only the fraction of individuals
   # with event is estimated. assuming no time course of events
@@ -27,40 +28,43 @@ drmte_sep1 <- function(formula, data, subset, fct,
   pFirst <- nFirst/nTot
   tFirst <- timeAf[timeBef==min(timeBef)]
   tLast <- timeBef[!is.finite(timeAf)]
-
   pCum <- cumsum(tapply(nSeeds[is.finite(timeAf)], timeAf[is.finite(timeAf)], sum))/nTot
   tpCum <- as.numeric(names(pCum))
 
-  # print("OK1")
-  # Fitting models
+  # Fitting main model
   cureMod <- try( drmte(nSeeds ~ timeBef + timeAf, fct = fct), silent = T)
   # print("OK2")
-  fct$fixed <- c(Inf, NA, 1)
-  fct$noParm <- 1
+  # fct$fixed <- c(Inf, NA, 1)
+  # fct$noParm <- 1
 
-  # cureMod2 <- try( drm(pCum ~ tpCum, fct = EV.fr(), start = mean(pCum)), silent = T)
-  # if(class(cureMod2) == "try-error") print("OK")
-  cureMod2 <- lm(pCum ~ 1)
-  cureMod2 <- as.drc(cureMod2)
-  cureMod2$parNames[[1]] <- "d:(intercept)"
-  cureMod2$parNames[[2]] <- "d"
-  cureMod2$parNames[[3]] <- "(intercept)"
-  cureMod2$dataList$dose <- unique(timeAf[is.finite(timeAf)])
-  cureMod2$fct <- linear.mean()
+  # Fit reduced model
+  cureMod2 <- try( drm(pCum ~ tpCum, fct = linear.mean()),
+                       silent = T)
+  if(class(cureMod2) == "try-error") print("NON OK")
 
+  # cureMod2 <- lm(pCum ~ 1)
+  # cureMod2 <- as.drc(cureMod2)
+  # cureMod2$parNames[[1]] <- "d:(intercept)"
+  # cureMod2$parNames[[2]] <- "d"
+  # cureMod2$parNames[[3]] <- "(intercept)"
+  # cureMod2$dataList$dose <- unique(timeAf[is.finite(timeAf)])
+  # cureMod2$fct <- linear.mean()
 
   # Deciding which model is to be used
-  if( all(class(cureMod) != "try-error")) {
+  if( all(!inherits(cureMod, "try-error")) ) {
     p <- try( summary(cureMod), silent=T)
-    if(any(class(p) == "try-error")) {
+    if(any(inherits(p, "try-error"))) {
       class(cureMod) <- "try-error"
     } else if (coef(cureMod)[2] > 1 | coef(cureMod)[2] < 0) {
-      cureMod <- try (drmte(nSeeds ~ timeBef + timeAf, fct = fct, upperl = c(NA, 1, NA)), silent = T)
-    }
+      # Fixing higher asymptote to 0
+      cureMod <- try (drmte(nSeeds ~ timeBef + timeAf,
+                            fct = fct, upperl = c(NA, 1, NA)),
+                      silent = T)
+      }
     }
 
   # Preparing and returning the results
-  if(all(class(cureMod) != "try-error")){
+  if(all(!inherits(cureMod, "try-error"))){
     result <- cureMod
   } else {
     result <- cureMod2
