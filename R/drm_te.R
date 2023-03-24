@@ -260,6 +260,10 @@ pshifts = NULL, varcov = NULL){
 
       }
       sepList <- returnList
+      # return(returnList)
+      if( all(unlist(lapply(returnList, inherits, what = "character")), T) ){
+        stop("Selected model could not be fit to any of the curveid levels!")
+      }
       returnList <- sepFit2obj(returnList)
       returnList$"dataList"$dose <- as.numeric(returnList$"dataList"$dose)
       returnList$"dataList"$names$dName <- varNames0[3:(3+xDim-2)]
@@ -269,6 +273,7 @@ pshifts = NULL, varcov = NULL){
       returnList$separateFit <- sepList
       class(returnList) <- c("drcteList", "drcte", "drc")
       # class(returnList) <- c("drcte", "drc")
+      returnList$call <- NULL
       return(returnList)
   }
 
@@ -481,7 +486,7 @@ pshifts = NULL, varcov = NULL){
     #     }
     #     isfi <- is.finite(dose)  # removing infinite dose values
 
-    # Combining curves (NPMLE fit) ###############
+    ## Combining curves (NPMLE fit) ###############
         if (identical(type, "event"))
         {
           # If necessary, several curves are combined by using different methods

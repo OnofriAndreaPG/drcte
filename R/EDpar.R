@@ -44,8 +44,6 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
     if (is.function(vcov.))
             vcMat <- vcov.(object, ...)
         else vcMat <- vcov.
-    #Modified on 15/2/19#############################
-
 
     ## Defining vectors and matrices
     ncolIM <- ncol(indexMat)
@@ -113,7 +111,7 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
     }
 
     ## Defining column names
-    colNames <- c("Estimate", "Std. Error")
+    colNames <- c("Estimate", "SE")
 
     ## Calculating the confidence intervals
     if (interval == "delta")
@@ -170,6 +168,7 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
     # Edited on 19/08/2022
     #rownames(EDmat) <- paste("e", rownames(EDmat), sep = ":")
     rownames(EDmat) <- paste(rownames(EDmat), "%", sep = "")
+
     if(type == "relative") rownames(EDmat) <- paste(rownames(EDmat), "_R", sep = "")
     resPrint(EDmat, "Estimated effective doses", interval, intLabel, display = display)
 

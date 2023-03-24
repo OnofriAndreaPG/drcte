@@ -65,9 +65,15 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
             }
         }
         rn <- row.names(EDmat)
+        # print(rn)
         if(type == "absolute") rowProb <- respLev*100 else rowProb <- respLev
-        rn3 <- paste(sub(":.*", x = gsub("e:", "", rn, fixed=T), replacement = ""), rowProb, sep = ":")
+        rn3 <- gsub("e:", "", rn, fixed=T) # Rimuove e: dalla stringa
+        # Updated on 7/2/2023
+        # rn3 <- paste(sub(":.*", x = rn3, replacement = ""), rowProb, sep = ":")
+        rn3 <- paste(sub("(:)(?!.*:).*", x = rn3, replacement = "", perl = T),
+                     rowProb, sep = ":")
         rn3 <- paste(rn3, "%", sep = "")
+        # print(rn3)
         row.names(EDmat) <- rn3
 
 

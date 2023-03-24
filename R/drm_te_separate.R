@@ -40,7 +40,7 @@ drmte_sep1 <- function(formula, data, subset, fct,
   # Fit reduced model
   cureMod2 <- try( drm(pCum ~ tpCum, fct = linear.mean()),
                        silent = T)
-  if(class(cureMod2) == "try-error") print("NON OK")
+  ## if(class(cureMod2) == "try-error") print("NON OK")
 
   # cureMod2 <- lm(pCum ~ 1)
   # cureMod2 <- as.drc(cureMod2)

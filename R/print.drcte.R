@@ -11,7 +11,12 @@
 
 
     ## Borrowing from print.lm
-    cat("\nCall:\n", deparse(object$"call"), "\n\n", sep = "")
+    ## Corrected on 6/3/2023 to produce a different message with drcteList objects
+    if(inherits(object$"call", "call"))
+      {cat("\nCall:\n", deparse(object$"call"), "\n\n", sep = "")
+    }else {
+      cat("\nCall:\n", "This is a list of multiple calls. See the 'separateFit' slot for more detail.", "\n\n", sep = "")
+    }
     if (length(coef(object))>0)
     {
         cat("Coefficients:\n")

@@ -2,8 +2,8 @@ compCDF <- function(obj, scores = c("wmw", "logrank1","logrank2"),
                     B = 199, type = c("naive", "permutation"),
                     units = NULL, upperl, lowerl, display = TRUE){
 
-  if(!any(class(obj) == "drcte")) {
-     stop("Method works only with 'drcte' objects")
+  if(!inherits(obj, "drcte") | inherits(obj, "drcteList")) {
+     stop("Method works only with 'drcte' objects in case of simultaneous fitting (i.e. it does not work when the 'separate = T' option has been used)")
   }
   ncol <- length(obj$data[1,])
   group <- as.character(rep(obj$data[,ncol - 1], obj$data[,ncol - 3]))
@@ -40,8 +40,19 @@ compCDFpar <- function(obj, B, units, type = type,
         names(args) != "upperl" & names(args) != "lowerl"]
 
   obj2 <- eval(call, parent.frame())
-  d <- coef(obj2)[2]
-  if(d > 1 | d < 0) obj2 <- update(obj2, upperl = c(NA, 1, NA))
+
+  # Edited 6/3/2023. For certain models, there is a form of
+  # control to avoid that 'd' goes in an unreasonable range
+  fctName <- deparse(substitute(obj$fct$name))
+  if(grepl("L.3(",  fctName, fixed=TRUE) |
+         grepl("LN.3(", fctName, fixed=TRUE) |
+         grepl("W1.3(", fctName, fixed=TRUE) |
+         grepl("W2.3(", fctName, fixed=TRUE) |
+         grepl("G.3(",  fctName, fixed=TRUE) |
+         grepl("loglogistic",  fctName, fixed=TRUE) ){
+    d <- coef(obj2)[2]
+    if(d > 1 | d < 0) obj2 <- update(obj2, upperl = c(NA, 1, NA))
+  }
 
   # Naive lrt (wrong in two ways!)
   LRT <- as.numeric(2 * (logLik(obj) - logLik(obj2)))
