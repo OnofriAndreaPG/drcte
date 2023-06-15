@@ -5,10 +5,18 @@ pshifts = NULL, varcov = NULL){
 
   ## Get all arguments from call ############################
   ## Matching argument values
+  # oldOpt <- options()
+  # oldPar <- par(no.readonly = TRUE)
+  # on.exit(options(oldOpt), add = T)
+  # on.exit(par(oldPar), add = T)
   bcVal <- NULL
   bcAdd <- 0
   robust = "mean"
-  options(na.action = deparse(substitute(na.action)))
+
+  # options(na.action = deparse(substitute(na.action))) - Edited 4/5/23
+  op1 <- options(na.action = deparse(substitute(na.action)))
+  on.exit(options(op1), add=TRUE)
+
   useD <- control$"useD"
   constrained <- control$"constr"
   # maxDose <- control$"maxDose"
@@ -29,7 +37,9 @@ pshifts = NULL, varcov = NULL){
   # KDEmethod <- control$"KDEmethod"
 
   ## Setting warnings policy
-  options(warn = warnVal)
+  # options(warn = warnVal) edited 4/5/2023
+  op2 <- options(warn = warnVal)
+  on.exit(options(op2), add=TRUE)
 
   ## Handling 'start' argument
   if (missing(start)) {selfStart <- TRUE} else {selfStart <- FALSE}
@@ -278,7 +288,7 @@ pshifts = NULL, varcov = NULL){
   }
 
 
-    ## Handling "pmodels" argument
+    ## Handling "pmodels" argument ###########
     pmodelsList <- list()
     if (missing(pmodels))
     {
@@ -300,9 +310,13 @@ pshifts = NULL, varcov = NULL){
         ## Handling a list or data.frame argument of "pmodels"
         if (is.null(data))
         {
-            pmodels <- eval(substitute(pmodels), envir = .GlobalEnv)
+          # pmodels <- eval(substitute(pmodels), envir = .GlobalEnv)
+          # Edited on 8/5/2023
+          pmodels <- eval(substitute(pmodels))
+          # print(pmodels)
         } else {
-            pmodels <- eval(substitute(pmodels), envir = data, enclos = parent.frame())
+          pmodels <- eval(substitute(pmodels), envir = data, enclos = parent.frame())
+          # print(pmodels)
         }
 
         if (is.data.frame(pmodels))
@@ -360,7 +374,9 @@ pshifts = NULL, varcov = NULL){
 
 
     ## Re-setting na.action
-    options(na.action = "na.omit")  # the default
+    # options(na.action = "na.omit") edited 4/5/2023
+    op3 <- options(na.action = "na.omit")  # the default
+    on.exit(options(op3), add=TRUE)
 
     ## Transforming dose value if they are provided as log dose
     if ( !is.null(logDose) && is.numeric(logDose) )
@@ -1334,7 +1350,8 @@ matchCall)
    #print(opfct(startVec))
 
     ## Controlling the warnings
-    options(warn = warnVal)
+    op1 <- options(warn = warnVal)
+    on.exit(options(op1), add=TRUE)
 
     ## Calculating hessian
     if (is.null(opdfct2)) {hes <- TRUE} else {hes <- FALSE}

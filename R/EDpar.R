@@ -3,6 +3,13 @@ level = ifelse(!(interval == "none"), 0.95, NULL), reference = c("control", "upp
 type = c("relative", "absolute"), lref, uref, bound = TRUE, od = FALSE, vcov. = vcov, # robust = false,
 display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
 {
+
+    # Save options to restore
+    oldOpt <- options()
+    # oldPar <- par(no.readonly = TRUE)
+    on.exit(options(oldOpt))
+    # on.exit(par(oldPar), add = T)
+
     interval <- match.arg(interval)
     reference <- match.arg(reference)
     type <- match.arg(type)
@@ -25,14 +32,17 @@ display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE, ...)
     strParm0 <- sort(colnames(object$"parmMat"))
 
     curveNames <- colnames(object$"parmMat")
-    options(warn = -1)  # switching off warnings caused by coercion in the if statement
+    # options(warn = -1) # edited on 4/5/2023
+    # switching off warnings caused by coercion in the if statement
+    suppressWarnings({
     if (any(is.na(as.numeric(curveNames))))
     {
         curveOrder <- order(curveNames)
     } else { # if names are numbers then skip re-ordering
         curveOrder <- 1:length(curveNames)
     }
-    options(warn = 0)  # normalizing behaviour of warnings
+    })
+    # options(warn = 0)  # normalizing behaviour of warnings
 
     strParm0 <- curveNames[curveOrder]
     indexMat <- indexMat[, curveOrder, drop = FALSE]

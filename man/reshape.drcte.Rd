@@ -12,7 +12,7 @@ This is a set of functions that can be used to transform time-to-event datasets 
 
 \usage{
 melt_te(data = NULL, count_cols, treat_cols, monitimes,
-n.subjects = NULL, grouped = T)
+n.subjects = NULL, grouped = TRUE)
 decumulate_te(data = NULL, resp, treat_cols, monitimes,
 units, n.subjects, type = c("count", "proportion"))
 group_te(data)

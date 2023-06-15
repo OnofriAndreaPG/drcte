@@ -1,5 +1,5 @@
 melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
-                    n.subjects = NULL, grouped = T){
+                    n.subjects = NULL, grouped = TRUE){
   # this function reshapes a common field-book for germination assays (WIDE format)
   # into one of two LONG formats (LONG GROUPED and LONG UNGROUPED)
 

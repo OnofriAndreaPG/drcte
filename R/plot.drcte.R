@@ -1,7 +1,7 @@
 plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
    type = "all",
    npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
-   npmle.points = F, kde.points = T,
+   npmle.points = FALSE, kde.points = TRUE,
    broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE, gridsize = 100,
    log = "", xtsty, xttrim = TRUE, xt = NULL, xtlab = NULL, xlab, xlim,
    yt = NULL, ytlab = NULL, ylab, ylim,
@@ -11,6 +11,12 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
   {
 
   obj <- x
+  # Save options to restore
+    oldOpt <- options()
+    oldPar <- par(no.readonly = TRUE)
+    on.exit(options(oldOpt))
+    on.exit(par(oldPar), add = T)
+
   if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
     object <- obj
     type = "all"
@@ -129,11 +135,13 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     }
 
     maxR <- max(resp)
-    options(warn = -1)  # suppressing warning in case maximum of NULL is taken
+    # Edited on 4/5/2023
+    # options(warn = -1)  # suppressing warning in case maximum of NULL is taken
+    suppressWarnings({
     maxPM <- unlist(lapply(plotMat, max, na.rm = TRUE))
-
     if (max(maxPM) > maxR) {maxPM <- maxPM[which.max(maxPM)]} else {maxPM <- maxR}
-    options(warn=0)
+    })
+    # options(warn=0)
 
     if (missing(ylim))
     {

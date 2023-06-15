@@ -6,8 +6,8 @@
 # 2. for NMPLE fit quantiles for grouped data are calculated (Farooq, 2005)
 # 3. for KDE fit quantiles are calculated by using a bisection method
 ##########################################################################
-quantile.drcte <- function(x, probs, restricted = FALSE, rate = F,
-                           interval = F, level = ifelse(!(interval == "none"), 0.95, NULL),
+quantile.drcte <- function(x, probs, restricted = FALSE, rate = FALSE,
+                           interval = FALSE, level = ifelse(!(interval == "none"), 0.95, NULL),
                            robust = FALSE, B = 999, units = NULL,
                            display = TRUE, ...){
   object <- x

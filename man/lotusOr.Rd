@@ -44,4 +44,5 @@ datasetG <- melt_te(lotusOr, count_cols = 3:17, treat_cols = Stage,
             monitimes = 1:15, n.subjects = rep(25,12))
 head(datasetG, 16)
 }
-\keyword{time-to-event-analysis, seed germination}
+\keyword{time-to-event-analysis}
+\keyword{seed science}

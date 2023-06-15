@@ -11,7 +11,7 @@
   \method{plot}{drcte}(x, ..., add = FALSE, level = NULL, shading = TRUE,
   type = "all",
   npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
-  npmle.points = F, kde.points = T,
+  npmle.points = FALSE, kde.points = TRUE,
   broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE,
   gridsize = 100, log = "", xtsty, xttrim = TRUE,
   xt = NULL, xtlab = NULL, xlab, xlim,

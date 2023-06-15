@@ -247,7 +247,7 @@ return(fx)
 
 #############
 
-plot.kernel.fun1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
+plot_kernel_fun1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
                       type="l",las=1,lwd=1,...)
                   {
     class(f) <- "kernel.fun"
@@ -270,13 +270,13 @@ plot.kernel.fun1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
 
 }
 
-plot.kernel.fun <- function(x,...) plot.kernel.fun1d (x,...)
+plot_kernel_fun <- function(x,...) plot_kernel_fun1d (x,...)
 
 
 ################################
 ################################
 
-plot.kernel.conv1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
+plot_kernel_conv1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
                              type="l",las=1,lwd=1,...)
                   {
     class(f) <- "kernel.conv"
@@ -299,7 +299,7 @@ plot.kernel.conv1d <- function(f,main=NULL,sub = NULL, xlab=NULL, ylab=NULL,
 
 }
 
-plot.kernel.conv <- function(x,...) plot.kernel.conv1d (x,...)
+plot_kernel_conv <- function(x,...) plot_kernel_conv1d (x,...)
 
 ## Sat Jul 20 02:11:02 2013
 ## Original file Copyright 2013 A.C. Guidoum

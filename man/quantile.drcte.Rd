@@ -4,11 +4,11 @@
 \title{Estimating quantiles for time-to-event models}
 
 \description{
-This function estimates the quantiles for time-to-events data, either for the whole sample (restricted = F) or only for the fraction of individuals with events (restricted = T). The quantiles for rates (the inverse of times) are also available, by using the 'rate = T' option. The quantiles represent the time/rate to reach a given fraction of individuals with event}
+This function estimates the quantiles for time-to-events data, either for the whole sample (restricted = FALSE) or only for the fraction of individuals with events (restricted = TRUE). The quantiles for rates (the inverse of times) are also available, by using the 'rate = TRUE' option. The quantiles represent the time/rate to reach a given fraction of individuals with event}
 
 \usage{
-  \method{quantile}{drcte}(x, probs, restricted = FALSE, rate = F,
-                           interval = F,
+  \method{quantile}{drcte}(x, probs, restricted = FALSE, rate = FALSE,
+                           interval = FALSE,
                            level = ifelse(!(interval == "none"), 0.95, NULL),
                            robust = FALSE, B = 999, units = NULL,
                            display = TRUE, ...)
@@ -42,7 +42,6 @@ The 'ED()' function.
 \author{Andrea Onofri}
 
 \examples{
-rm(list = ls())
 start <- c(0, 6, 7, 10, 13, 16, 22, 23)
 end <- c(6, 7, 10, 13, 16, 22, 23, Inf)
 count <- c(3, 9, 3, 8, 1, 1, 5, 5)

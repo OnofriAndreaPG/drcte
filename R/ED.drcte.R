@@ -3,7 +3,7 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
          reference = c("control", "upper"), type = c("relative", "absolute"),
          lref, uref, bound = TRUE, od = FALSE, vcov. = vcov, # robust = false,
          display = TRUE, pool = TRUE, logBase = NULL, multcomp = FALSE,
-         intType = "confidence", rate = F, B = 200, seed = 1234,
+         intType = "confidence", rate = FALSE, B = 200, seed = 1234,
          units = NULL, ...)
 {
     # Get information from the call
@@ -48,7 +48,7 @@ ED.drcte <- function(object, respLev, interval = c("none", "delta", "boot"),
                  interval = interval, clevel = clevel, level = level,
          reference = reference, type = type, lref = lref,  uref = uref,
          bound = bound, od = od, vcov. = vcov., # robust = false,
-         display = F, pool = pool, logBase = logBase, multcomp = multcomp,
+         display = FALSE, pool = pool, logBase = logBase, multcomp = multcomp,
          ...))
 
         if(rate == T){

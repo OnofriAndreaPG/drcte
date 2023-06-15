@@ -12,7 +12,7 @@
   reference = c("control", "upper"), type = c("relative", "absolute"),
   lref, uref, bound = TRUE, od = FALSE, vcov. = vcov, display = TRUE,
   pool = TRUE, logBase = NULL, multcomp = FALSE,
-  intType = "confidence", rate = F, B = 200,
+  intType = "confidence", rate = FALSE, B = 200,
   seed = 1234, units = NULL, ...)
 }
 
@@ -58,7 +58,6 @@ The 'quantile()' function
 \author{Andrea Onofri}
 
 \examples{
-rm(list = ls())
 start <- c(0, 6, 7, 10, 13, 16, 22, 23)
 end <- c(6, 7, 10, 13, 16, 22, 23, Inf)
 count <- c(3, 9, 3, 8, 1, 1, 5, 5)

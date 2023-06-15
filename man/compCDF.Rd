@@ -63,11 +63,11 @@ Andrea Onofri
 Some code is taken from the 'interval' package and from the 'binnednp' package (citations below).
 }
 \examples{
-rm(list = ls())
 data(verbascum)
+\donttest{
 modVerb <- drmte(nSeeds ~ timeBef + timeAf, curveid = Species,
-             fct = NPMLE(), data = verbascum)
-compCDF(modVerb, units = verbascum$Dish)
+              fct = NPMLE(), data = verbascum)
+compCDF(modVerb, units = verbascum$Dish)}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory (show via RShowDoc("KEYWORDS")):
