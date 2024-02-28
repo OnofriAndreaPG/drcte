@@ -2,9 +2,9 @@ Package: drcte
 Date: 2023-06-15
 Type: Package
 Title: Statistical Approaches for Time-to-Event Data in Agriculture
-Version: 1.0.60
+Version: 1.0.61
 Depends: R (>= 4.0.0), drc
-Imports: methods, plyr, nor1mix, graphics, stats, mclust, survival, sandwich, lmtest, dplyr, multcomp, tidyr, MASS
+Imports: methods, plyr, nor1mix, graphics, stats, mclust, survival, sandwich, lmtest, dplyr, multcomp, tidyr, MASS, tibble
 Authors@R: c(person("Andrea" , "Onofri", role = c("aut", "cre"), email="andrea.onofri@unipg.it"))
 Maintainer: Andrea Onofri <andrea.onofri@unipg.it>
 Description: A specific and comprehensive framework for the analyses of time-to-event data in agriculture. Fit non-parametric and parametric time-to-event models. Compare time-to-event curves for different experimental groups. Plots and other displays. It is particularly tailored to the analyses of data from germination and emergence assays. The methods are described in Onofri et al. (2022) "A unified framework for the analysis of germination, emergence, and other time-to-event data in weed science", Weed Science, 70, 259-271 <doi:10.1017/wsc.2022.8>.

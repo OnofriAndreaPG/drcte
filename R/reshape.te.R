@@ -39,7 +39,6 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
   tmp1 <- try(is.vector(n.subjects), silent = T)
   if(!is(tmp1, "try-error")){
       if(tmp1){
-
         if(length(n.subjects) == 1) nViable <- rep(n.subjects, length(counts[,1])) else nViable <- n.subjects
        } else {
        nViable <- apply(counts, 1, sum)
@@ -53,7 +52,7 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
       nViable <- tmp2[,1]
       }
     }
-
+  if(is_tibble(nViable)) nViable <- as.vector(nViable) # Edited on 6/11/2023
   df <- makeDrm.drcte(counts = counts, treat = treat, nViable = nViable,
                 moniTimes = monitimes)
 

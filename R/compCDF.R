@@ -12,7 +12,7 @@ compCDF <- function(obj, scores = c("wmw", "logrank1","logrank2"),
      stop("Nothing to compare")
   }
 
-  # Manage unit variable
+  # Manage unit variable (da rivedere)
   unitName <- deparse(substitute(units))
   if(unitName != "NULL"){
     test <- obj$origData[[unitName]]
@@ -440,6 +440,7 @@ compCDFkde <- function(obj,
     pout$N <- NULL
   return(invisible(pout))
 }
+
 compCDFnp <- function(obj,
     scores,
     rho = NULL,
@@ -468,9 +469,9 @@ compCDFnp <- function(obj,
     Stilde <- exp( - c(0,cumsum(phat[2:(k+1)]/Shat[1:k])) )
     ckstar <- (1/phat[2:(k+1)])*( Shat[1:k]* log(Stilde[1:k]) - Shat[2:(k+1)]* log(Stilde[2:(k+1)]) )
   } else if (scores=="logrank2"){
-      ckstar <- (1/phat[2:(k+1)])*c(
-      Shat[1:(k-1)]* log( Shat[1:(k-1)]) - Shat[2:(k)]* log( Shat[2:(k)]),
-      Shat[k]* log( Shat[k]))
+    ckstar <- (1/phat[2:(k+1)])*c(
+    Shat[1:(k-1)]* log( Shat[1:(k-1)]) - Shat[2:(k)]* log( Shat[2:(k)]),
+    Shat[k]* log( Shat[k]))
   } else if (scores=="wmw"){
     ckstar <- Shat[1:k] + Shat[2:(k+1)] - 1
   }
@@ -481,11 +482,11 @@ compCDFnp <- function(obj,
   }
 
   cc <- apply(A, 1, tempfunc)
-  # print(cc)
 
   ## if group is numeric but only two unique levels then treat as two sample case
   group <- as.character(rep(obj$data[,5], obj$data[,3]))
 
+  cluster <- as.character(rep(cluster, obj$data[,3]))
   ## for 2- or k-sample: calculate efficient score statistics, U,
   ## and sample size per group, N
   # U is the group score sum (see below)
@@ -518,16 +519,18 @@ compCDFnp <- function(obj,
     # Calculate the resampling stat (i.e. the deviance for groups)
     cc <- cc - mean(cc) # centering
     calcTestStat<-function(x, g, Ng=ng, Ug=ug){
+      # Ng = numero dei gruppi; Ug = Nomi gruppi
       mean.scores <- N <- rep(NA, Ng)
       for (j in 1:Ng){
-        mean.scores[j] <- mean(x[g==Ug[j]])
+        mean.scores[j] <- mean(x[g == Ug[j]])
+        # print(mean.scores[j]); print("\n")
         N[j] <- length(x[g==Ug[j]])
       }
       sum( N*(mean.scores^2) )
     }
-
+    # print(group)
+    # print(cc)
     t0 <- calcTestStat(cc, group) # observed stat. quadrato scores medi * sample sizes
-    # t0
     # anova(lm(cc ~ group))
     # sum(N * tapply(cc, group, mean)^2)
 
@@ -541,13 +544,16 @@ compCDFnp <- function(obj,
         newList <- sample(group, replace = FALSE)
         ti[i] <- calcTestStat(cc, newList)
       } else {
-        df <- data.frame(id = 1:length(cluster),
-                       obj$data,
+        # Errore. Edited on 28/02/24
+        df <- data.frame(id = 1:length(group),
+                         group = group,
                        cluster = cluster)
-        pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
-        pr$group <- obj$data[[5]]
-        pr <- pr[order(pr$cluster, pr$timeBef), ]
+        pr <- resample.cens(df, cluster = df$cluster,
+                            replace = c(F, F))
+        # pr$group <- group
+        # pr <- pr[order(pr$group, pr$timeBef), ]
         newList <- as.character(pr$group)
+        # print(newList)
         ti[i] <- calcTestStat(cc, newList)
       }
     }

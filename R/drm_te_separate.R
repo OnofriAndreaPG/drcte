@@ -9,7 +9,7 @@ drmte_sep <- function(formula, curveid, data, subset, fct,
 drmte_sep1 <- function(formula, data, subset, fct,
                       start, na.action, control, lowerl,
                       upperl) {
-  # print("1")
+
   # This function fits a time-to-event model. If the attempt fails,
   # a simpler model is fitted, where only the fraction of individuals
   # with event is estimated. assuming no time course of events
@@ -33,11 +33,14 @@ drmte_sep1 <- function(formula, data, subset, fct,
 
   # Fitting main model
   cureMod <- try( drmte(nSeeds ~ timeBef + timeAf, fct = fct), silent = T)
-  # print("OK2")
-  # fct$fixed <- c(Inf, NA, 1)
-  # fct$noParm <- 1
 
-  # Fit reduced model
+  # Fitting second model (d fixed to 1)
+  fct2 <- do.call(fct$name, args = list(fixed = c(NA,1,NA)))
+  cureModf1 <- try (drmte(nSeeds ~ timeBef + timeAf,
+                            fct = fct2),
+                      silent = T)
+
+  # Fit reduced model (only upper asymptote)
   cureMod2 <- try( drm(pCum ~ tpCum, fct = linear.mean()),
                        silent = T)
   ## if(class(cureMod2) == "try-error") print("NON OK")
@@ -50,22 +53,28 @@ drmte_sep1 <- function(formula, data, subset, fct,
   # cureMod2$dataList$dose <- unique(timeAf[is.finite(timeAf)])
   # cureMod2$fct <- linear.mean()
 
-  # Deciding which model is to be used
+  # Deciding which model is to be used. It is also verified
+  # that the summary function does not return errors
   if( all(!inherits(cureMod, "try-error")) ) {
+    # if 3-parameters is ok
     p <- try( summary(cureMod), silent=T)
     if(any(inherits(p, "try-error"))) {
       class(cureMod) <- "try-error"
     } else if (coef(cureMod)[2] > 1 | coef(cureMod)[2] < 0) {
-      # Fixing higher asymptote to 0
-      cureMod <- try (drmte(nSeeds ~ timeBef + timeAf,
-                            fct = fct, upperl = c(NA, 1, NA)),
-                      silent = T)
+      # if the asymptote is on unreasonable range
+      # uses the simpler 2-parameters model
+      # cureMod <- try (drmte(nSeeds ~ timeBef + timeAf,
+      #                       fct = fct, upperl = c(NA, 1, NA)),
+      #                 silent = T)
+      cureMod <- cureModf1
       }
     }
 
   # Preparing and returning the results
   if(all(!inherits(cureMod, "try-error"))){
     result <- cureMod
+  } else if(all(!inherits(cureModf1, "try-error"))){
+    result <- cureModf1
   } else {
     result <- cureMod2
     result$data <- data.frame(timeBef, timeAf, nSeeds,
