@@ -13,3 +13,8 @@ Installation
 # install.packages("devtools")
 # devtools::install_github("onofriAndreaPG/drcte")
 ```
+
+Known bugs
+----------
+
+The use of the 'units' argument in the 'summary' method gives a warning when the pmodels argument is used in the 'drmte' function

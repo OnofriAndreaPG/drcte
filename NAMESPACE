@@ -10,7 +10,7 @@ importFrom("stats", "as.formula", "binom.test", "coef", "complete.cases",
            "na.omit", "nls", "optim", "pchisq", "plogis", "pnorm", "ppoints",
            "predict", "residuals", "terms", "deriv", "lm", "sortedXyData", "printCoefmat",
            "na.pass", "qnorm", "qt", "vcov", "quantile", "sd", "update",
-           "dnorm")
+           "dnorm", "pt")
 importFrom("utils", "head", "tail", "stack")
 importFrom("survival", "strata")
 importFrom("grDevices", "gray")
@@ -24,7 +24,8 @@ importFrom("methods", "is")
 
 # Exports: general
 export(drmte, drmteControl, loglogistic, loglogisticSurv,
-       lognormal, KDE, KDE.fun, NPMLE,
+       exponential, exponentialSurv,
+       lognormal, lognormal.2, KDE, KDE.fun, NPMLE,
        compCDF, melt_te, decumulate_te, group_te, ungroup_te,
        plotData, compParmte) # jack.drcte, boot.drcte
 

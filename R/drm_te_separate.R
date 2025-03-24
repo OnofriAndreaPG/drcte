@@ -44,7 +44,6 @@ drmte_sep1 <- function(formula, data, subset, fct,
   cureMod2 <- try( drm(pCum ~ tpCum, fct = linear.mean()),
                        silent = T)
   ## if(class(cureMod2) == "try-error") print("NON OK")
-
   # cureMod2 <- lm(pCum ~ 1)
   # cureMod2 <- as.drc(cureMod2)
   # cureMod2$parNames[[1]] <- "d:(intercept)"
@@ -69,19 +68,23 @@ drmte_sep1 <- function(formula, data, subset, fct,
       cureMod <- cureModf1
       }
     }
-
+  # print(inherits(cureMod, "try-error"))
   # Preparing and returning the results
   if(all(!inherits(cureMod, "try-error"))){
+    # print("cureModf")
     result <- cureMod
   } else if(all(!inherits(cureModf1, "try-error"))){
+    # print("cureModf1")
     result <- cureModf1
   } else {
+    # print("cureMod2")
     result <- cureMod2
     result$data <- data.frame(timeBef, timeAf, nSeeds,
                               curveid = 1, orig.curveid = 1, weights = 1)
     if(result$fit$hessian == 0) result$fit$hessian <- NaN
   }
   result$origData <- data #Added on 19/08/2022
+  # print(result)
   return(result)
 }
 

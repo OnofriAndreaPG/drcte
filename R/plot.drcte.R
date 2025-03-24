@@ -1,28 +1,36 @@
-plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
-   type = "all",
-   npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
-   npmle.points = FALSE, kde.points = TRUE,
-   broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE, gridsize = 100,
-   log = "", xtsty, xttrim = TRUE, xt = NULL, xtlab = NULL, xlab, xlim,
-   yt = NULL, ytlab = NULL, ylab, ylim,
-   cex, cex.axis = 1, col = FALSE, lty, pch,
-   legend, legendText, legendPos, cex.legend = 1,
-   normal = FALSE, normRef = 1, confidence.level = 0.95)
+# plot.drcte <- function(x, ..., add = FALSE, level = NULL,
+#    shading = TRUE, type = "all",
+#    npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
+#    npmle.points = FALSE, kde.points = TRUE,
+#    broken = FALSE, bp, bcontrol = NULL, conName = NULL, axes = TRUE, gridsize = 100,
+#    log = "", xtsty, xttrim = TRUE, xt = NULL, xtlab = NULL, xlab, xlim,
+#    yt = NULL, ytlab = NULL, ylab, ylim,
+#    cex, cex.axis = 1, col = FALSE, lty, pch,
+#    legend, legendText, legendPos, cex.legend = 1,
+#    normal = FALSE, normRef = 1, confidence.level = 0.95)
+plot.drcte <- function(x, ...,
+     npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
+     npmle.points = FALSE, kde.points = TRUE, shading = TRUE)
   {
-
   obj <- x
-  # Save options to restore
+
+  if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
+    # Save options to restore
     oldOpt <- options()
     oldPar <- par(no.readonly = TRUE)
     on.exit(options(oldOpt))
     on.exit(par(oldPar), add = T)
 
-  if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
     object <- obj
     type = "all"
     npmle.type <- match.arg(npmle.type)
 
     ## Determining logarithmic scales
+    listArg <- as.list(match.call(expand.dots = FALSE)[-1])
+    if(is.null(listArg$...$type)) type <- "all"
+    if(is.null(listArg$...$conName)) conName <- NULL
+
+    if(is.null(listArg$...$log)) log <- "" else log <- listArg$...$log
     if ((log == "") || (log == "y"))
     {
         logX <- FALSE
@@ -31,7 +39,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     }
 
     ## Determining the tick mark style for the dose axis
-    if (missing(xtsty))
+    if(is.null(listArg$...$xtsty))
     {
         if (logX)
         {
@@ -61,7 +69,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     assayNoOld <- as.vector(curveid)
     uniAss <- unique(assayNoOld)
     numAss <- length(uniAss)
-
+    if(is.null(listArg$...$level)) level <- NULL
     doPlot <- is.null(level) || any(uniAss %in% level)
     # if (!doPlot) {stop("Nothing to plot")}
     if (!doPlot & !is.numeric(level)) {stop("Nothing to plot")} # Change: 31/10/21
@@ -75,11 +83,18 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     doseName <- "" #dlNames[["dName"]]
     respName <- "" #dlNames[["orName"]]
     # axis names are the names of the dose variable and response variable in the original data set
-    if (missing(xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
-    if (missing(ylab)) {if (respName == "") {ylab <- "CDF"} else {ylab <- respName}}
+    if(is.null(listArg$...$xlab))
+
+    # if (missing(xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
+    # if (missing(ylab)) {if (respName == "") {ylab <- "CDF"} else {ylab <- respName}}
+    if(is.null(listArg$...$xlab))
+    if(is.null(listArg$...$xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
+    if(is.null(listArg$...$ylab)) {if (respName == "") {ylab <- "CDF"} else {ylab <- respName}}
+
 
     ## Determining range of dose values
-    if (missing(xlim))
+    if(is.null(listArg$...$xlim))
+    # if (missing(xlim))
     {
         xLimits <- c(0, max(dose)) #c(min(dose), max(dose))
     } else {
@@ -87,7 +102,8 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     }
 
     ## Handling small dose values
-    if (missing(bp))
+    if(is.null(listArg$...$bp))
+    # if (missing(bp))
     {
 
         ## Constructing appropriate break on dose axis
@@ -119,6 +135,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
     ## Constructing dose values for plotting ########
 #    if (doseDim == 1)
+    if(is.null(listArg$...$gridsize)) gridsize <- 100
      dosePts <- seq(xLimits[1], xLimits[2], length = gridsize)
 #    } else {}  # No handling of multi-dimensional dose values
 
@@ -143,9 +160,11 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     })
     # options(warn=0)
 
-    if (missing(ylim))
+    if(is.null(listArg$...$ylim))
+    # if (missing(ylim))
     {
-        if (missing(xlim))
+      if(is.null(listArg$...$xlim))
+      # if (missing(xlim))
         {
             yLimits <- c(0, 1) # c(min(resp), maxPM)
         } else {
@@ -188,13 +207,19 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
     lenlev <- length(level)
 
     ## Determining presence of legend
-    if (missing(legend))
+    if(is.null(listArg$...$legend))
+    # if (missing(legend))
     {
-        if (lenlev == 1) {legend <- FALSE} else {legend <- TRUE}
+      # Setting the legend parameter to true when there are more
+      # than 1 level, by default
+      if (lenlev == 1) {legend <- FALSE} else {legend <- TRUE}
+    } else {
+      if (listArg$...$legend == FALSE) {legend <- FALSE} else {legend <- TRUE}
     }
 
     ## Setting graphical parameters
     colourVec <- rep(1, lenlev)
+    if(is.null(listArg$...$col)) col <- FALSE
     if (is.logical(col) && col)
     {
         colourVec <- 1:lenlev
@@ -208,10 +233,10 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         colourVec <- rep(col, lenlev)
     }
 
-    # Helper function ######
+    # Helper function
     parFct <- function(gpar, lenlev, defVal = NULL) {
-      if (!missing(gpar))
-      {
+      # if (!missing(gpar)){
+      if(!is.null(gpar)){
         if (length(gpar) == 1)
         {
             return(rep(gpar, lenlev))
@@ -222,13 +247,15 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         if (is.null(defVal)) {return(1:lenlev)} else {rep(defVal, lenlev)}
             }
     }
-
+    if(is.null(listArg$...$cex)) cex <- NULL
+    if(is.null(listArg$...$lty)) lty <- NULL
+    if(is.null(listArg$...$pch)) pch <- NULL
+    if(is.null(listArg$...$axes)) axes <- TRUE
     cexVec <- parFct(cex, lenlev, 1)
     ltyVec <- parFct(lty, lenlev)
     pchVec <- parFct(pch, lenlev)
 
     ## Plotting data ######################
-
     levelInd <- 1:lenlev
     ## Plotting data for the first curve id
     plot(0, type = "n", xlab = xlab, ylab = ylab, log = log,
@@ -309,7 +336,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         # plotType <- "p"
         if(kde.points == T) plotType <- "p" else plotType <- "n"
       }
-
+      # print(colourVec)
       pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], type = plotType,
                          lty = ltyVec[i], ...)
       }
@@ -340,14 +367,13 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
     ## Adding legend
     # level <- dlNames[["rNames"]] Removed on 31/10/21: error
-
     makeLegend <- function(colourVec, legend, legendCex, legendPos, legendText,
                          lenlev, level, ltyVec, noPlot, pchVec, type,
                          xLimits, yLimits) {
-        if (!legend) {return(invisible(NULL))}
+      if (!legend) {return(invisible(NULL))}
 
         legendLevels <- as.character(level)
-        if (!missing(legendText))
+        if (!is.null(legendText))
         {
             lenLT <- length(legendText)
 
@@ -359,13 +385,13 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
         ## Removing line types when lines are not drawn
         # Penso sia inutile, qui
-        ltyVec[noPlot] <- 0
-        if (identical(type, "obs"))
-        {
-            ltyVec[levInd] <- 0
-        }
-
-        ## Removing plot symbol when no points are drawn
+        # ltyVec[noPlot] <- 0
+        # if (identical(type, "all"))
+        # {
+        #     ltyVec[levInd] <- 0
+        # }
+        # print("OK")
+        # ## Removing plot symbol when no points are drawn
         # Corrected: 21/12/21
         if ( obj$fit$method == "NPMLE" & (npmle.points == F | npmle.type != "interpolation"))
         {
@@ -373,7 +399,10 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         } else if (obj$fit$method == "KDE" & kde.points == F ) pchVec[levInd] <- NA
 
         ## Defining position of legend
-        if (!missing(legendPos))
+
+        if(!is.null(listArg$...$legendPos)) legendPos <- eval(listArg$...$legendPos) else legendPos <- NULL
+
+        if (!is.null(legendPos))
         {
             if ( (is.numeric(legendPos)) && (length(legendPos) == 2) )
             xlPos <- legendPos[1]
@@ -387,13 +416,18 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
         legend(xlPos, ylPos, legendLevels, lty = ltyVec[levInd], pch = pchVec[levInd],
         col = colourVec[levInd], bty = "n", xjust = 1, yjust = 1, cex = legendCex)
     }
-
+    if(is.null(listArg$...$cex.legend)) cex.legend <- 1
+    if(is.null(listArg$...$legendText)) legendText <- NULL
+    if(is.null(listArg$...$legendPos)) legendPos <- NULL
+    # print(legend)
+    # stop()
     makeLegend(colourVec, legend, cex.legend, legendPos, legendText,
                lenlev, level, ltyVec, noPlot, pchVec = pchVec,
                type, xLimits, yLimits)
 
     ## Resetting graphical parameter
     par(las = 0)
+
 
     if(obj$fit$method == "NPMLE"){
       retData <- NULL
@@ -524,7 +558,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 #     }
 #     if (xLimits[1] >= xLimits[2]) {stop("Argument 'conLevel' is set too high")}
 #
-#     ## Constructing dose values for plotting ########
+#     ## Constructing dose values for plotting
 # #    if (doseDim == 1)
 # #    {
 #     if ((is.null(logDose)) && (logX))
@@ -684,7 +718,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 #     ltyVec <- drc:::parFct(lty, lenlev)
 #     pchVec <- drc:::parFct(pch, lenlev)
 #
-#     ## Plotting data ######################
+#     ## Plotting data
 #     type = "all"
 #     levelInd <- 1:lenlev
 #     for (i in levelInd)
@@ -741,7 +775,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 #         }
 #     }
 #
-#     ## Plotting fitted curves ####
+#     ## Plotting fitted curves
 #     plotMat <- as.data.frame(plotMat)
 #
 #     noPlot <- rep(FALSE, lenlev)
@@ -776,8 +810,7 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 #     invisible(retData)
   } else {
 
-  # case parametric
-
+  # case parametric ############
   # Handling multiple covariates
   dose <- obj$dataList[["dose"]]
   if(!is.vector(dose)) doseDim <- length(dose[1,]) else doseDim <- 1
@@ -785,13 +818,20 @@ plot.drcte <- function(x, ..., add = FALSE, level = NULL, shading = TRUE,
 
   obj$dataList$plotid <- obj$dataList$names$rNames[obj$dataList$plotid]
   class(obj) <- "drc"
-  retData <- plot(obj, log = "", add = add, level = level, type = type, broken = broken,
-              bp = bp, bcontrol = bcontrol, conName = conName, axes = axes, gridsize = gridsize,
-              xtsty = xtsty, xttrim = xttrim, xt = xt, xtlab = xtlab, xlab = xlab, xlim = xlim,
-              yt = yt, ytlab = ytlab, ylab = ylab, ylim = ylim, cex = cex,
-              cex.axis = cex.axis, col = col, lty = lty, pch = pch, legend = legend,
-              legendText = legendText, legendPos = legendPos, cex.legend = cex.legend,
-              normal = normal, normRef = normRef, confidence.level = confidence.level)
+  # Corrected on 24/2/25
+  # retData <- plot(obj, log = log, add = add, level = level, type = type, broken = broken,
+  #             bp = bp, bcontrol = bcontrol, conName = conName, axes = axes, gridsize = gridsize,
+  #             xtsty = xtsty, xttrim = xttrim, xt = xt, xtlab = xtlab, xlab = xlab, xlim = xlim,
+  #             yt = yt, ytlab = ytlab, ylab = ylab, ylim = ylim, cex = cex,
+  #             cex.axis = cex.axis, col = col, lty = lty, pch = pch, legend = legend,
+  #             legendText = legendText, legendPos = legendPos, cex.legend = cex.legend,
+  #             normal = normal, normRef = normRef, confidence.level = confidence.level)
+  listArg <- as.list(match.call(expand.dots = FALSE)[-1])
+  if(is.null(listArg$...$log)) {
+    retData <- plot(obj, log = "", ...)
+  } else {
+    retData <- plot(obj, ...)
+  }
   dlNames <- obj$dataList$names
   doseName <- dlNames[["dName"]]
   if(length(dlNames[["rNames"]]) > 1){

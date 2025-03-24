@@ -20,7 +20,6 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
   stop("The number of monitoring times must be equal to the number
        of columns with counts")
 
-
   # Load the counts as positions (not as a reference)
   # Edited: 4/7/22: tibble needs to be transformed as data.frame, to avoid errors
   counts <- as.data.frame(data[, count_cols])
@@ -51,8 +50,10 @@ melt_te <- function(data = NULL, count_cols, treat_cols, monitimes,
       } else {
       nViable <- tmp2[,1]
       }
-    }
-  if(is_tibble(nViable)) nViable <- as.vector(nViable) # Edited on 6/11/2023
+  }
+  # return(nViable)
+  if(is_tibble(nViable)) nViable <- as.data.frame(nViable)[,1] # Edited on 6/11/2023 and 19/03/24
+
   df <- makeDrm.drcte(counts = counts, treat = treat, nViable = nViable,
                 moniTimes = monitimes)
 

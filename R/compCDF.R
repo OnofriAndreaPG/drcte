@@ -129,12 +129,13 @@ compCDFpar <- function(obj, B, units, type = type,
                    obj$data,
                    cluster = cluster)
       message("Permuting groups")
+
         for(b in 1:B){
           txtMes <- paste(round(b/B*100, 0), "%\r", sep ="")
           message(txtMes, appendLF = F)
           pr <- resample.cens(df, cluster = df$cluster, replace = c(F, F))
           pr$group <- obj$data[[5]]
-          pr <- pr[order(pr$cluster, pr$timeBef), ]
+          pr <- pr[order(pr$cluster, pr[,1]), ]
           newList <- as.character(pr$group)
           objNew <- try(update(obj,
                    curveid = group, data = pr), silent = T)
@@ -486,7 +487,9 @@ compCDFnp <- function(obj,
   ## if group is numeric but only two unique levels then treat as two sample case
   group <- as.character(rep(obj$data[,5], obj$data[,3]))
 
-  cluster <- as.character(rep(cluster, obj$data[,3]))
+  ## Corrected a buglet (added if clause) on 21/3/24
+  if(!is.null(cluster)) cluster <- as.character(rep(cluster, obj$data[,3]))
+
   ## for 2- or k-sample: calculate efficient score statistics, U,
   ## and sample size per group, N
   # U is the group score sum (see below)
@@ -504,18 +507,7 @@ compCDFnp <- function(obj,
 
   if (ng < 2){
     stop("Only one group found. Nothing to compare")
-  # } else if(ug == 20){
-  #   # 2-samples test
-  #   # X<-cc[group==ug[1]]
-  #   # Y<-cc[group==ug[2]]
-  #   # # pout <- do.call("permTS", list(x=X, y=Y, alternative=alternative,
-  #   #                                exact=exact,method=method, control=mcontrol))
   } else {
-    # K-samples test
-    # pout <- perm::permKS(x = cc, g = group,
-    #                      exact = T) #, method = method) #, control = mcontrol))
-    # pout
-    # print(pout)
     # Calculate the resampling stat (i.e. the deviance for groups)
     cc <- cc - mean(cc) # centering
     calcTestStat<-function(x, g, Ng=ng, Ug=ug){
@@ -534,7 +526,6 @@ compCDFnp <- function(obj,
     # anova(lm(cc ~ group))
     # sum(N * tapply(cc, group, mean)^2)
 
-
     # Build permutation distribution
     #    set.seed(1234321)
     ti <- rep(NA, B)
@@ -545,9 +536,11 @@ compCDFnp <- function(obj,
         ti[i] <- calcTestStat(cc, newList)
       } else {
         # Errore. Edited on 28/02/24
+
         df <- data.frame(id = 1:length(group),
                          group = group,
                        cluster = cluster)
+
         pr <- resample.cens(df, cluster = df$cluster,
                             replace = c(F, F))
         # pr$group <- group

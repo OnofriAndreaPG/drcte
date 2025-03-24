@@ -36,7 +36,7 @@ data(lotus)
 mod <- drmte(count ~ timeBef + timeAf, curveid = Stage,
                 fct = loglogistic(), data = lotus,
              upperl = c(NA, 1, NA))
-compParmte(mod, "d", robust = T)
+compParmte(mod, "d", robust = TRUE)
 }
 \keyword{models}
 \keyword{time-to-event}
