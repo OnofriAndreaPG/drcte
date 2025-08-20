@@ -1,4 +1,4 @@
-"lognormal.2" <- function(
+"lognormal" <- function(
 fixed = c(NA, NA, NA), names = c("b", "d", "e"))
 {
 
@@ -146,8 +146,8 @@ fixed = c(NA, NA, NA), names = c("b", "d", "e"))
     invisible(returnList)
 }
 
-"lognormal" <- function(
-fixed = c(NA, NA, NA), names = c("log-b", "logit-d", "log-e"))
+"lognormalSurv" <- function(
+fixed = c(NA, NA, NA), names = c("b", "d", "e"))
 {
 
     ## Checking arguments

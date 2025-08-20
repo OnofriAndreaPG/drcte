@@ -723,8 +723,10 @@ pshifts = NULL, varcov = NULL){
       estMethod <- drmEMeventtime(dose, resp, multCurves2,
                                   doseScaling = doseScaling)
     } else if (identical(type, "event2")) {
-      estMethod <- drmEMeventtimeUnc(dose, resp, multCurves2,
-                                  doseScaling = doseScaling)
+      # Yet to be programmed, for uncensored observations
+      stop("Uncensored observations are not supported, yet")
+      # estMethod <- drmEMeventtimeUnc(dose, resp, multCurves2,
+      #                             doseScaling = doseScaling)
     }
 
     opfct <- estMethod$opfct

@@ -1,5 +1,6 @@
 \name{exponential}
 \alias{exponential}
+\alias{exponentialSurv}
 \title{
 (Shifted) - Exponential distribution of germination times within a seed lot
 }
@@ -8,6 +9,7 @@ This function provides the truncated and shifted exponential cumulative distribu
 }
 \usage{
 exponential(fixed = c(NA, NA, NA), names = c("b", "d", "shift"))
+exponentialSurv(fixed = c(NA, NA, NA), names = c("b", "d", "shift"))
 }
 
 \arguments{

@@ -1,4 +1,5 @@
-# drcte 1.00.62
+# drcte 1.00.65
+* 2025-08-20: Corrected missing package anchors in documentation files. Other minor edits.
 * 2025-02-25: Corrected a buglet in 'loglogistic()', that provoked errors for the self-starter in some situations.
 * 2025-02-24: Corrected a buglet in 'plot.drcte()', that provoked odd results when other plots were added to the main plot.
 * 2024-04-03: Corrected an error in 'ED()', that provoked an error when the fct had all constrained parameters except from one.

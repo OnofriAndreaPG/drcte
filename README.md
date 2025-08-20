@@ -9,7 +9,10 @@ Installation
 ------------
 
 ``` r
-# You can install 'drcte' from GitHub
+# Last stable version (From CRAN)
+# install.packages("drcte")
+
+# You can also install the development version of 'drcte' from GitHub
 # install.packages("devtools")
 # devtools::install_github("onofriAndreaPG/drcte")
 ```

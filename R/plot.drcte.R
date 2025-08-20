@@ -10,11 +10,12 @@
 #    normal = FALSE, normRef = 1, confidence.level = 0.95)
 plot.drcte <- function(x, ...,
      npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
-     npmle.points = FALSE, kde.points = TRUE, shading = TRUE)
-  {
+     npmle.points = FALSE, kde.points = TRUE, shading = TRUE, bp) {
   obj <- x
 
   if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
+    # Non-parametric fits ###########
+
     # Save options to restore
     oldOpt <- options()
     oldPar <- par(no.readonly = TRUE)
@@ -93,12 +94,13 @@ plot.drcte <- function(x, ...,
 
 
     ## Determining range of dose values
+    # print(listArg)
     if(is.null(listArg$...$xlim))
     # if (missing(xlim))
     {
         xLimits <- c(0, max(dose)) #c(min(dose), max(dose))
     } else {
-        xLimits <- xlim
+        xLimits <- eval(listArg$...$xlim)
     }
 
     ## Handling small dose values
@@ -160,19 +162,15 @@ plot.drcte <- function(x, ...,
     })
     # options(warn=0)
 
-    if(is.null(listArg$...$ylim))
-    # if (missing(ylim))
-    {
-      if(is.null(listArg$...$xlim))
-      # if (missing(xlim))
-        {
+    if(is.null(listArg$...$ylim)){
+      if(is.null(listArg$...$xlim)){
             yLimits <- c(0, 1) # c(min(resp), maxPM)
         } else {
             logVec <- ((dose >= xLimits[1]) & (dose <= xLimits[2]))
             yLimits <- range(resp[logVec])
         }
     } else {
-        yLimits <- ylim
+        yLimits <- eval(listArg$...$ylim)
     }
 
     ## Setting a few graphical parameters
@@ -255,13 +253,15 @@ plot.drcte <- function(x, ...,
     ltyVec <- parFct(lty, lenlev)
     pchVec <- parFct(pch, lenlev)
 
-    ## Plotting data ######################
+    ## Plotting non parametric data ######################
     levelInd <- 1:lenlev
     ## Plotting data for the first curve id
+    # print(class(yLimits))
     plot(0, type = "n", xlab = xlab, ylab = ylab, log = log,
          xlim = xLimits, ylim = yLimits,
-          axes = axes,
-         frame.plot = TRUE, ...)
+         axes = axes,
+         frame.plot = TRUE)
+
 
     if(shading & obj$fit$method == "NPMLE"){
       # Plotting grey areas, if requested
@@ -442,375 +442,12 @@ plot.drcte <- function(x, ...,
       colnames(retData) <- c(doseName, respName)
     }
 
-    } else if(obj$fit$method == "KDEfun2") {
+    }
+   else if(obj$fit$method == "KDEfun2") {
       # Da fare?
-#     object <- obj
-#     type <- match.arg(type)
-#
-#     ## Determining logarithmic scales
-#     if ((log == "") || (log == "y"))
-#     {
-#         logX <- FALSE
-#     } else {
-#         logX <- TRUE
-#     }
-#
-#     ## Determining the tick mark style for the dose axis
-#     if (missing(xtsty))
-#     {
-#         if (logX)
-#         {
-#             xtsty <- "base10"
-#         } else {
-#             xtsty <- "standard"
-#         }
-#     }
-#
-#     dataList <- object[["dataList"]]
-#     dose <- dataList[["dose"]]
-#     resp <- dataList[["origResp"]]
-#     curveid <- dataList[["curveid"]]
-#     plotid <- dataList[["plotid"]]
-#
-#     ## Normalizing the response values
-#     getLU <- function(object) {
-#       parmMat <- object$"parmMat"
-#       fixedVal <- object$fct$fixed
-#       lenFV <- length(fixedVal)
-#       parmMatExt <- matrix(fixedVal, length(fixedVal), ncol(parmMat))
-#       parmMatExt[is.na(fixedVal), ] <- parmMat
-#       parmMatExt
-#     }
-#     normalizeLU <- function(x, y, normRef = 1){
-#       cVal <- y[2]; dVal <- y[3]
-#       normRef * ((x - cVal) / (dVal - cVal))
-#       }
-#
-#
-#     if (normal)
-#       {
-#         respList <- split(resp, curveid)
-#         resp <- unlist(mapply(normalizeLU, respList,
-#                               as.list(as.data.frame(getLU(object))),
-#                               normRef = normRef))
-#         }
-#     # print(plotid); print(curveid); stop()
-#     if (!is.null(plotid))
-#     {  # used for event-time data
-#         assayNoOld <- as.vector(plotid)
-#     } else {
-#         assayNoOld <- as.vector(curveid)
-#     }
-#     uniAss <- unique(assayNoOld)
-#     numAss <- length(uniAss)
-#
-#     doPlot <- is.null(level) || any(uniAss %in% level)
-#     if (!doPlot) {stop("Nothing to plot")}
-#
-#     plotFct <- (object$"curve")[[1]]
-#     logDose <- (object$"curve")[[2]]
-#     naPlot <- ifelse(is.null(object$"curve"$"naPlot"), FALSE, TRUE)
-#
-#     ## Assigning axis names
-#     dlNames <- dataList[["names"]]
-#     doseName <- dlNames[["dName"]]
-#     respName <- dlNames[["orName"]]
-#     # axis names are the names of the dose variable and response variable in the original data set
-#     if (missing(xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
-#     if (missing(ylab)) {if (respName == "") {ylab <- "Cdf"} else {ylab <- respName}}
-#
-#     ## Determining range of dose values
-#     if (missing(xlim))
-#     {
-#         xLimits <- c(min(dose), max(dose))
-#     } else {
-#         xLimits <- xlim  # if (abs(xLimits[1])<zeroEps) {xLimits[1] <- xLimits[1] + zeroEps}
-#     }
-#
-#     ## Handling small dose values
-#     if (missing(bp))
-#     {
-#
-#         ## Constructing appropriate break on dose axis
-#         if (!is.null(logDose))  # natural logarithm
-#         {
-#             conLevel <- round(min(dose[is.finite(dose)])) - 1
-#         } else {
-#             log10cl <- round(log10(min(dose[dose > 0]))) - 1
-#             conLevel <- 10^(log10cl)
-#         }
-#     } else {
-#         conLevel <- bp
-#     }
-#     if ((xLimits[1] < conLevel) && (logX || (!is.null(logDose))))
-#     {
-#         xLimits[1] <- conLevel
-#         smallDoses <- (dose < conLevel)
-#         dose[smallDoses] <- conLevel
-#         if (is.null(conName))
-#         {
-#             if (is.null(logDose)) {conName <- expression(0)} else {conName <- expression(-infinity)}
-#         }
-# #        conNameYes <- TRUE
-#     } else {
-# #        conNameYes <- FALSE
-#         conName <- NULL
-#     }
-#     if (xLimits[1] >= xLimits[2]) {stop("Argument 'conLevel' is set too high")}
-#
-#     ## Constructing dose values for plotting
-# #    if (doseDim == 1)
-# #    {
-#     if ((is.null(logDose)) && (logX))
-#     {
-#        dosePts <- exp(seq(log(xLimits[1]), log(xLimits[2]), length = gridsize))
-#        ## Avoiding that slight imprecision produces dose values outside the dose range
-#        ## (the model-robust predict method is sensitive to such deviations!)
-#        dosePts[1] <- xLimits[1]
-#        dosePts[gridsize] <- xLimits[2]
-#     } else {
-#        dosePts <- seq(xLimits[1], xLimits[2], length = gridsize)
-#     }
-# #    } else {}  # No handling of multi-dimensional dose values
-#
-#
-#     ## Finding minimum and maximum on response scale
-#     ##
-#     if (is.null(logDose))
-#     {
-#         plotMat <- lapply(plotFct, function(x) x(dosePts))
-#     } else {
-#         plotMat <- lapply(plotFct, function(x) x(logDose^(dosePts)))
-#     }
-#
-#     ## Normalizing the fitted values
-#     if (normal)
-#     {
-#         respList <- split(resp, curveid)
-#         plotMat <- mapply(normalizeLU, as.list(as.data.frame(plotMat)),
-#                           as.list(as.data.frame(getLU(object))),
-#                           normRef = normRef)
-#     }
-#
-#     maxR <- max(resp)
-#     options(warn = -1)  # suppressing warning in case maximum of NULL is taken
-#     maxPM <- unlist(lapply(plotMat, max, na.rm = TRUE))
-#
-#     if (max(maxPM) > maxR) {maxPM <- maxPM[which.max(maxPM)]} else {maxPM <- maxR}
-#     options(warn=0)
-#
-#     if (missing(ylim))
-#     {
-#         if (missing(xlim))
-#         {
-#             yLimits <- c(min(resp), maxPM)
-#         } else {
-#             yLimits <- getRange(dose, resp, xLimits)
-#         }
-#     } else {
-#         yLimits <- ylim
-#     }
-#
-#     ## Setting a few graphical parameters
-#     par(las = 1)
-#     if (!is.null(logDose))
-#     {
-#         if (log == "x") {log <- ""}
-#         if ( (log == "xy") || (log == "yx") ) {log <- "y"}
-#     }
-#
-#     ## Cutting away original x values outside the limits
-#     eps1 <- 1e-8
-#     logVec <- !( (dose < xLimits[1] - eps1) | (dose > xLimits[2] + eps1) )
-#     dose <- dose[logVec]
-#     resp <- resp[logVec]
-#     assayNoOld <- assayNoOld[logVec]
-#
-#     ## Calculating predicted values for error bars
-#     if (identical(type, "bars"))
-#     {
-#         predictMat <- predict(object, interval = "confidence",
-#                               level = confidence.level)[, c("Lower", "Upper")]
-#         barFct <- function(plotPoints)
-#         {
-#             pp3 <- plotPoints[, 3]
-#             pp4 <- plotPoints[, 4]
-#             plotCI(plotPoints[, 1], pp3 + 0.5 * (pp4 - pp3),
-#             li = pp3, ui = pp4, add = TRUE, pch = NA)
-#         }
-#
-#         ciFct <- function(level, ...){invisible(NULL)}
-#
-#         pointFct <- function(plotPoints, cexVal, colVal, pchVal, ...){invisible(NULL)}
-#
-#     } else if (identical(type, "confidence"))
-#     {
-#
-#         barFct <- function(plotPoints){invisible(NULL)}
-#
-#         ciFct <- function(level, ...)
-#         {
-#             newdata <- data.frame(DOSE=dosePts, CURVE=rep(level, length(dosePts)))
-#             predictMat <- predict(object,
-#                                   newdata=newdata,
-#                                   interval = "confidence",
-#                                   level=confidence.level)
-#
-#             x <- c(dosePts, rev(dosePts))
-#             y <- c(predictMat[,"Lower"], rev(predictMat[,"Upper"]))
-#             polygon(x,y, border=NA, ...)
-#         }
-#
-#         pointFct <- function(plotPoints, cexVal, colVal, pchVal, ...){invisible(NULL)}
-#
-#     } else {
-#
-#         barFct <- function(plotPoints){invisible(NULL)}
-#
-#         ciFct <- function(level, ...){invisible(NULL)}
-#
-#         pointFct <- function(plotPoints, cexVal, colVal, pchVal, ...)
-#         {
-#             points(plotPoints, cex = cexVal, col = colVal, pch = pchVal, ...)
-#         }
-#     }
-#
-#
-#     ## Setting the plot type
-#     if ( (identical(type, "none")) || (identical(type, "bars")) )
-#     {
-#         plotType <- "n"
-#     } else {
-#         plotType <- "p"
-#     }
-#
-#     ## Determining levels to be plotted
-# #    uniAss <- unique(assayNoOld)
-#     if (is.null(level))
-#     {
-#         level <- uniAss
-#     } else {
-#         level <- intersect(level, uniAss)
-#     }
-#     lenlev <- length(level)
-#
-#     ## Determining presence of legend
-#     if (missing(legend))
-#     {
-#         if (lenlev == 1) {legend <- FALSE} else {legend <- TRUE}
-#     }
-#
-#     ## Setting graphical parameters
-#     colourVec <- rep(1, lenlev)
-#     if (is.logical(col) && col)
-#     {
-#         colourVec <- 1:lenlev
-#     }
-#     if (!is.logical(col) && (length(col) == lenlev) )
-#     {
-#         colourVec <- col
-#     }
-#     if (!is.logical(col) && (!(length(col) == lenlev)) )
-#     {
-#         colourVec <- rep(col, lenlev)
-#     }
-#     cexVec <- drc:::parFct(cex, lenlev, 1)
-#     ltyVec <- drc:::parFct(lty, lenlev)
-#     pchVec <- drc:::parFct(pch, lenlev)
-#
-#     ## Plotting data
-#     type = "all"
-#     levelInd <- 1:lenlev
-#     for (i in levelInd)
-#     {
-#         indVec <- level[i] == assayNoOld
-#         plotPoints <-
-#         switch(type,
-#             "average" = cbind(as.numeric(names(tapVec <- tapply(resp[indVec],
-#             dose[indVec], mean))), tapVec),
-#             "bars"    = cbind(
-#             as.numeric(names(tapVec <- tapply(resp[indVec], dose[indVec], mean))),
-#             tapVec,
-#             tapply(predictMat[indVec, 1], dose[indVec], head, 1),
-#             tapply(predictMat[indVec, 2], dose[indVec], head, 1)),
-#             "none"    = cbind(dose[indVec], resp[indVec]),
-#             "all"     = cbind(dose[indVec], resp[indVec]),
-#             "obs"     = cbind(dose[indVec], resp[indVec])
-#         )
-#         # print(plotPoints)
-#
-#         if ( (!add) && (i == 1) )
-#         {
-#             ## Plotting data for the first curve id
-#             plot(plotPoints, type = plotType, xlab = xlab, ylab = ylab, log = log, xlim = xLimits, ylim = yLimits,
-#             axes = FALSE, frame.plot = TRUE, col = colourVec[i], pch = pchVec[i], cex = cexVec[i], ...)
-#
-#             ## Adding error bars
-#             barFct(plotPoints)
-#
-#             ## Add confidence regions
-#             ciFct(level=i, col=alpha(colourVec[i],0.25))
-#
-#             ## Adding axes
-#             drc:::addAxes(axes, cex.axis, conName, xt, xtlab, xtsty, xttrim, logX, yt, ytlab, conLevel, logDose)
-#
-#             ## Adding axis break
-#             ivMid <- drc:::brokenAxis(bcontrol, broken, conLevel, dosePts, gridsize, log, logX, logDose)
-#
-#         ## Plotting in the case "add = TRUE" and for all remaining curve ids
-#         } else {
-#             ## Adding axis break (in fact only restricting the dose range to be plotted)
-#             ivMid <- drc:::brokenAxis(bcontrol, broken, conLevel, dosePts, gridsize, log, logX, logDose, plotit = FALSE)
-#
-#             if (!identical(type, "none"))  # equivalent of type = "n" in the above "plot"
-#             {
-#                 pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], ...)
-#
-#                 ## Adding error bars
-#                 barFct(plotPoints)
-#
-#                 ## Add confidence regions
-#                 ciFct(level=i, col=alpha(colourVec[i],0.25))
-#             }
-#         }
-#     }
-#
-#     ## Plotting fitted curves
-#     plotMat <- as.data.frame(plotMat)
-#
-#     noPlot <- rep(FALSE, lenlev)
-#     if (!identical(type, "obs"))
-#     {
-#         for (i in levelInd)
-#         {
-#             indVal <- uniAss %in% level[i]
-#
-#             # Da verificare se necessario
-#             # if ( (!naPlot) && (any(is.na(plotMat[, indVal]))) )
-#             # {
-#             #     noPlot[i] <- TRUE
-#             #     next
-#             # }
-#             # lines(dosePts[ivMid], plotMat[ivMid, indVal], lty = ltyVec[i], col = colourVec[i], ...)
-#             lines(dosePts, plotMat[, indVal], lty = ltyVec[i], col = colourVec[i], ...)
-#             # print(plotMat); stop()
-#         }
-#     }
-#
-#
-#     ## Adding legend
-#     drc:::makeLegend(colourVec, legend, cex.legend, legendPos, legendText, lenlev, level, ltyVec,
-#     noPlot, pchVec, type, xLimits, yLimits)
-#
-#     ## Resetting graphical parameter
-#     par(las = 0)
-#
-#     retData <- data.frame(dosePts, as.data.frame(plotMat))
-#     colnames(retData) <- c(doseName, dlNames[["cNames"]])
-#     invisible(retData)
-  } else {
+    } else {
 
-  # case parametric ############
+  # case parametric curve ############
   # Handling multiple covariates
   dose <- obj$dataList[["dose"]]
   if(!is.vector(dose)) doseDim <- length(dose[1,]) else doseDim <- 1
@@ -818,7 +455,7 @@ plot.drcte <- function(x, ...,
 
   obj$dataList$plotid <- obj$dataList$names$rNames[obj$dataList$plotid]
   class(obj) <- "drc"
-  # Corrected on 24/2/25
+  # Corrected on 24/2/25 and 19/8/2025
   # retData <- plot(obj, log = log, add = add, level = level, type = type, broken = broken,
   #             bp = bp, bcontrol = bcontrol, conName = conName, axes = axes, gridsize = gridsize,
   #             xtsty = xtsty, xttrim = xttrim, xt = xt, xtlab = xtlab, xlab = xlab, xlim = xlim,
@@ -827,6 +464,7 @@ plot.drcte <- function(x, ...,
   #             legendText = legendText, legendPos = legendPos, cex.legend = cex.legend,
   #             normal = normal, normRef = normRef, confidence.level = confidence.level)
   listArg <- as.list(match.call(expand.dots = FALSE)[-1])
+  # print(listArg)
   if(is.null(listArg$...$log)) {
     retData <- plot(obj, log = "", ...)
   } else {
