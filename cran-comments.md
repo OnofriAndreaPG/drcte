@@ -4,9 +4,6 @@
 ## Test environments
 * Local:
   - local R installation, R 4.5.1 (aarch64-apple-darwin20)
-  - Windows 10, R 4.0.5 (x86_64-w64-mingw32/x64 (64-bit))
-* travis-ci:
-  - Ubuntu Linux 16.04.6 LTS (xenial) (release and devel)
 * win-builder:
   - Windows Server 2008 (release (4.0.5) and devel (4.1.0 alpha))
     - 1 NOTE:
@@ -22,9 +19,6 @@
     - 2 NOTEs:
       * New submission
       * unable to verify current time
-
-
-## R CMD check results
 
 ## R CMD check results
 
