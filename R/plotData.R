@@ -24,7 +24,7 @@
   ## Determining logarithmic scales
   logX <- FALSE
 
-  ## Constructing the observed data
+  ## Constructing the observed data ########
   if(method == "NPMLE"){
     # To display the NPMLE (pkg. interval)
     dose <- object$ICfit$npmle$time
@@ -118,7 +118,6 @@
   } else {
     xLimits <- xlim  # if (abs(xLimits[1])<zeroEps) {xLimits[1] <- xLimits[1] + zeroEps}
   }
-
 
 
   ## Handling small dose values

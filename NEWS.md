@@ -1,4 +1,6 @@
-# drcte 1.00.65
+# drcte 1.00.66
+* 2025-12-05: Corrected buglet that caused wrong plotting of NPMLE curves.
+* 2025-12-04: Corrected buglet that prevented printing the non-parametric fits for specific levels. Other minor edits.
 * 2025-08-20: Corrected missing package anchors in documentation files. Other minor edits.
 * 2025-02-25: Corrected a buglet in 'loglogistic()', that provoked errors for the self-starter in some situations.
 * 2025-02-24: Corrected a buglet in 'plot.drcte()', that provoked odd results when other plots were added to the main plot.

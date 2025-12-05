@@ -9,11 +9,12 @@ NPcdf <- function(start, end, count){
   # Service functions are taken and modified from the 'interval' package
   # Michael P. Fay, Pamela A. Shaw (2010)., Journal of
   # Statistical Software, 36(2), 1-34."
-  # Modified on 27/05/2021
+  # Modified on 27/05/2021 - 5/12/2025
 
   n <- sum(count)
 
-  # CDF (NPMLE)
+  # CDF (NPMLE). Put the data in ungrouped form and fit
+  # Kaplan-Meyer model and pass it to the service functions
   tb <- rep(start, count)
   ta <- rep(end, count)
   obj <- getNPMLE(survival::Surv(tb, ta, type = "interval2") ~ 1)
@@ -35,8 +36,14 @@ NPcdf <- function(start, end, count){
   cdfNPMLEsum <- cdfNPMLE
   cdfNPMLE <- cdfNPMLE[is.finite(cdfNPMLE$endTime) == T,]
 
-
-  # CDF (NPMLE) - plotting data
+  # CDF (NPMLE) - data for plotting.
+  # Takes the map of Turnbull's intervals, put startVals and enVals
+  # together and adds a 0 at the beginning. Guarda quali di questi
+  # tempi sono momenti di osservazione (intervallo chiuso).
+  # Trova i duplicati e, se sono momenti di osservazione,
+  # li elimina 'sel <- sel[!crit[sel]]'. Elimina anche dalla lista
+  # le corrispondenti PDFs. Il problema nasce se non vi sono duplicati
+  # e quindi 'length(sel) == 0'.
   time <- c(0, as.vector(obj$intmap))
   crit <- c(TRUE, as.vector(attr(obj$intmap, "LRin")))
   S <- c("[0,0]" = 0, cumsum(obj$pf))
@@ -44,18 +51,20 @@ NPcdf <- function(start, end, count){
   sel <- which(duplicated(time))
   sel <- sel[!crit[sel]]
   time[time==Inf] <- max(time)
-  t2 <- time[-sel]
-  S2 <- S[-sel]
+  # t2 <- time[-sel]
+  # S2 <- S[-sel]
 
-  # Correction 20/06/21. To account for uncensored obs
-  # sel <- which(duplicated(time))
-  # if(length(sel) == 0){
-  #   t2 <- time
-  #   S2 <- S
-  # } else {
-  #   t2 <- time[-sel]
-  #   S2 <- S[-sel]
-  # }
+  # Correction 20/06/21 (removed following eight lines).
+  # To account for uncensored obs
+  # Readded on 5/12/25
+  sel <- which(duplicated(time))
+  if(length(sel) == 0){
+    t2 <- time
+    S2 <- S
+  } else {
+    t2 <- time[-sel]
+    S2 <- S[-sel]
+  }
 
   Sb2 <- c(0, diff(S2))
   if(length(t2) == 0) {

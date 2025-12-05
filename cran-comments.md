@@ -1,24 +1,18 @@
-# Version 1.0.65
-
+# Version 1.0.66
 
 ## Test environments
 * Local:
   - local R installation, R 4.5.1 (aarch64-apple-darwin20)
 * win-builder:
-  - Windows Server 2008 (release (4.0.5) and devel (4.1.0 alpha))
-    - 1 NOTE:
-      * New submission
-* R-hub builder (https://builder.r-hub.io)
-  - Windows Server 2008 R2 SP1, R-devel, 32/64 bit
-    - 1 NOTE:
-      * New submission
-  - Ubuntu Linux 20.04.1 LTS, R-release, GCC
-    - 1 NOTE:
-      * New submission
-  - Fedora Linux, R-devel, clang, gfortran
-    - 2 NOTEs:
-      * New submission
-      * unable to verify current time
+  - Windows Server 2022 x64 (build 20348), R 4.5.1 (x86_64-w64-mingw32)
+    - OK
+* R-hub builder (gitHub workflow)
+  - Windows Server 2022 x64 (build 20348), R-devel (2025-08-19 r88650 ucrt)
+    - OK
+  - Ubuntu Linux 24.04.2 LTS, R-devel, GCC
+    - OK
+  - Fedora Linux 38 (Container Image), R-devel (2025-08-19 r88650)
+    - OK
 
 ## R CMD check results
 

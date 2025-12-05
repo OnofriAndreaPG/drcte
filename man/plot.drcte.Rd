@@ -7,8 +7,7 @@
   \code{plot} displays fitted curves and observations in the same plot window, distinguishing between curves by different plot symbols and line types.}
 
 \usage{
-
-  \method{plot}{drcte}(x, ...,
+  \method{plot}{drcte}(x, ..., add =FALSE, level = NULL,
   npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
   npmle.points = FALSE, kde.points = TRUE,
   shading = TRUE,
@@ -18,6 +17,8 @@
 \arguments{
   \item{x}{an object of class 'drcte'.}
   \item{...}{additional graphical arguments. For instance, use \code{lwd=2} or \code{lwd=3} to increase the width of plot symbols.}
+  \item{add}{logical. If TRUE then add to already existing plot. Still not working with non-parametric fits}
+  \item{level}{vector of character strings. To plot only the curves specified by their names.}
   \item{shading}{For NPMLE, it prints shading on the graphs for the points where the likelihood value is not unique. Defaults to TRUE}
 \item{npmle.type}{the NPMLE of the cumulative density function is only specified at the end of each inspection interval, while it is not unique within each interval. This argument specifies how the CDF increases within each interval: possible values are "interpolation" (it is assumed that the CDF increases progressively), "left" (the CDF increases at the beginning of each interval), "right" (the CDF increases at the end of each interval; it is very common in survival analysis) and "midpoint" (the CDF increases in the middle of each interval; it is very common in survival analysis). This argument is neglected with parametric and KDE fits.}
   \item{npmle.points}{If F, with NPMLE fits, plotting the NPMLEs at the end of each interval as symbols is suppressed. Not implemented, yet.}

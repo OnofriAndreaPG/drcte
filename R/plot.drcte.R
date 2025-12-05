@@ -8,19 +8,19 @@
 #    cex, cex.axis = 1, col = FALSE, lty, pch,
 #    legend, legendText, legendPos, cex.legend = 1,
 #    normal = FALSE, normRef = 1, confidence.level = 0.95)
-plot.drcte <- function(x, ...,
+plot.drcte <- function(x, ..., add = FALSE, level = NULL,
      npmle.type = c("interpolation", "midpoint", "right", "left", "none"),
      npmle.points = FALSE, kde.points = TRUE, shading = TRUE, bp) {
   obj <- x
 
   if(obj$fit$method == "NPMLE" | obj$fit$method == "KDE") {
-    # Non-parametric fits ###########
+    # Case non-parametric fit ###########
 
     # Save options to restore
-    oldOpt <- options()
-    oldPar <- par(no.readonly = TRUE)
-    on.exit(options(oldOpt))
-    on.exit(par(oldPar), add = T)
+    # oldOpt <- options()
+    # oldPar <- par(no.readonly = TRUE)
+    # on.exit(options(oldOpt))
+    # on.exit(par(oldPar), add = T)
 
     object <- obj
     type = "all"
@@ -28,7 +28,7 @@ plot.drcte <- function(x, ...,
 
     ## Determining logarithmic scales
     listArg <- as.list(match.call(expand.dots = FALSE)[-1])
-    if(is.null(listArg$...$type)) type <- "all"
+    # if(is.null(listArg$...$type)) type <- "all"
     if(is.null(listArg$...$conName)) conName <- NULL
 
     if(is.null(listArg$...$log)) log <- "" else log <- listArg$...$log
@@ -59,7 +59,7 @@ plot.drcte <- function(x, ...,
       resp <- obj$ICfit$npmle$cdf
       curveid <- obj$ICfit$npmle[,1]
       plotid <- obj$ICfit$npmle[,1]
-    } else {
+      } else {
       # To display naive end-point estimator (upd. 21/12/21)
       dose <- dataList[["dose"]]
       resp <- dataList[["origResp"]]
@@ -70,7 +70,8 @@ plot.drcte <- function(x, ...,
     assayNoOld <- as.vector(curveid)
     uniAss <- unique(assayNoOld)
     numAss <- length(uniAss)
-    if(is.null(listArg$...$level)) level <- NULL
+
+    if(is.null(listArg$level)) level <- NULL  # Edited on 4/12/25
     doPlot <- is.null(level) || any(uniAss %in% level)
     # if (!doPlot) {stop("Nothing to plot")}
     if (!doPlot & !is.numeric(level)) {stop("Nothing to plot")} # Change: 31/10/21
@@ -84,11 +85,11 @@ plot.drcte <- function(x, ...,
     doseName <- "" #dlNames[["dName"]]
     respName <- "" #dlNames[["orName"]]
     # axis names are the names of the dose variable and response variable in the original data set
-    if(is.null(listArg$...$xlab))
+    # if(is.null(listArg$...$xlab))
 
     # if (missing(xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
     # if (missing(ylab)) {if (respName == "") {ylab <- "CDF"} else {ylab <- respName}}
-    if(is.null(listArg$...$xlab))
+    # if(is.null(listArg$...$xlab))
     if(is.null(listArg$...$xlab)) {if (doseName == "") {xlab <- "Time"} else {xlab <- doseName}}
     if(is.null(listArg$...$ylab)) {if (respName == "") {ylab <- "CDF"} else {ylab <- respName}}
 
@@ -103,11 +104,10 @@ plot.drcte <- function(x, ...,
         xLimits <- eval(listArg$...$xlim)
     }
 
-    ## Handling small dose values
+    ## Handling small dose values (not necessary, I think)
     if(is.null(listArg$...$bp))
     # if (missing(bp))
     {
-
         ## Constructing appropriate break on dose axis
         if (!is.null(logDose))  # natural logarithm
         {
@@ -141,7 +141,6 @@ plot.drcte <- function(x, ...,
      dosePts <- seq(xLimits[1], xLimits[2], length = gridsize)
 #    } else {}  # No handling of multi-dimensional dose values
 
-
     ## Finding minimum and maximum on response scale
     if(obj$fit$method == "KDE"){
       if (is.null(logDose)){
@@ -174,9 +173,10 @@ plot.drcte <- function(x, ...,
     }
 
     ## Setting a few graphical parameters
-    par(las = 1)
+    # par(las = 1)
 
     ## Cutting away original x values outside the limits
+    ## Non so
     eps1 <- 1e-8
     logVec <- !( (dose < xLimits[1] - eps1) | (dose > xLimits[2] + eps1) )
     dose <- dose[logVec]
@@ -186,10 +186,11 @@ plot.drcte <- function(x, ...,
     # Helper functions
     barFct <- function(plotPoints){invisible(NULL)}
     ciFct <- function(level, ...){invisible(NULL)}
-    pointFct <- function(plotPoints, cexVal, colVal, pchVal, ...){
-            points(plotPoints, cex = cexVal, col = colVal, pch = pchVal, ...)
+    # Removed ... from the following two lines (4/12/2025)
+    pointFct <- function(plotPoints, cexVal, colVal, pchVal, ltyVal, plotType){
+            points(plotPoints, cex = cexVal, col = colVal, pch = pchVal,
+                   type = plotType, lty = ltyVal)
         }
-    # }
 
     ## Determining levels to be plotted
     if (is.null(level))
@@ -197,6 +198,7 @@ plot.drcte <- function(x, ...,
         level <- uniAss
     } else {
         # level <- intersect(level, uniAss) Corrected 31/10/21
+
         level2 <- intersect(level, uniAss)
         if(length(level2) == 0) level2 <- uniAss[level]
         level <- level2
@@ -256,11 +258,15 @@ plot.drcte <- function(x, ...,
     ## Plotting non parametric data ######################
     levelInd <- 1:lenlev
     ## Plotting data for the first curve id
-    # print(class(yLimits))
+    if(is.null(listArg$...$main)) main <- NULL else main <- listArg$...$main
+    if (is.null(listArg$...$axes)) {axes <- TRUE} else {axes <- eval(listArg$...$axes)}
+    if (!is.null(listArg$...$add)) add <- TRUE
+    if(!add){ # Added on 4/12/2025
     plot(0, type = "n", xlab = xlab, ylab = ylab, log = log,
          xlim = xLimits, ylim = yLimits,
-         axes = axes,
+         axes = axes, main = main,
          frame.plot = TRUE)
+    }
 
 
     if(shading & obj$fit$method == "NPMLE"){
@@ -269,18 +275,17 @@ plot.drcte <- function(x, ...,
       {
         indVec <- level[i] == assayNoOld
         plotPoints <- cbind(dose[indVec], resp[indVec])
-        # print(plotPoints)
         plotPoints <- rbind(c(0, 0), plotPoints)
         ti <- plotPoints[, 1]
         pi <- plotPoints[, 2]
+        # Calculate co-ordinates for shaded polygons
         coord <- lapply(1:(length(ti) - 1), function(i){
                 res <- list(xx = c(ti[i],ti[1 + i],ti[1 + i],ti[i]),
                 yy = c(pi[i],pi[i],pi[1 + i],pi[1 + i]))
                 return(res)
                 })
-
-        # greyCol <- 1 - i/levelInd[i]
         greyCol <- 0.9
+        # First of all, plot shadings
         p <- lapply(coord, function(x) {graphics::polygon(x$xx, x$yy, col = gray(greyCol), border = NA)})
         # points(plotPoints, type = plotType, col = colourVec[i], pch = pchVec[i],
         #            cex = cexVec[i], lty = ltyVec[i], ...)
@@ -300,7 +305,6 @@ plot.drcte <- function(x, ...,
         ## Plotting in the case "add = TRUE" and for all remaining curve ids
         }
     }
-
     ## Setting the plot type
     if(obj$fit$method == "NPMLE"){
       plotType <- "b"
@@ -337,8 +341,10 @@ plot.drcte <- function(x, ...,
         if(kde.points == T) plotType <- "p" else plotType <- "n"
       }
       # print(colourVec)
-      pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], type = plotType,
-                         lty = ltyVec[i], ...)
+      ## Plotting function #####
+      # Removed ... from the following function (4/12/2025)
+      pointFct(plotPoints, cexVec[i], colourVec[i], pchVec[i], ltyVec[i],
+               plotType)
       }
 
     ## Plotting fitted curves #### I need this for KDEs
@@ -364,9 +370,9 @@ plot.drcte <- function(x, ...,
         }
     }
 
-
     ## Adding legend
     # level <- dlNames[["rNames"]] Removed on 31/10/21: error
+
     makeLegend <- function(colourVec, legend, legendCex, legendPos, legendText,
                          lenlev, level, ltyVec, noPlot, pchVec, type,
                          xLimits, yLimits) {
@@ -390,7 +396,7 @@ plot.drcte <- function(x, ...,
         # {
         #     ltyVec[levInd] <- 0
         # }
-        # print("OK")
+
         # ## Removing plot symbol when no points are drawn
         # Corrected: 21/12/21
         if ( obj$fit$method == "NPMLE" & (npmle.points == F | npmle.type != "interpolation"))
@@ -411,24 +417,21 @@ plot.drcte <- function(x, ...,
             xlPos <- xLimits[2]
             ylPos <- yLimits[2]
         }
-
         ## Adding legend
         legend(xlPos, ylPos, legendLevels, lty = ltyVec[levInd], pch = pchVec[levInd],
         col = colourVec[levInd], bty = "n", xjust = 1, yjust = 1, cex = legendCex)
     }
-    if(is.null(listArg$...$cex.legend)) cex.legend <- 1
-    if(is.null(listArg$...$legendText)) legendText <- NULL
-    if(is.null(listArg$...$legendPos)) legendPos <- NULL
-    # print(legend)
-    # stop()
+
+    if(is.null(listArg$...$cex.legend)) cex.legend <- 1 else cex.legend <- eval(listArg$...$cex.legend)
+    if(is.null(listArg$...$legendText)) legendText <- NULL else legendText <- eval(listArg$...$legendText)
+    if(is.null(listArg$...$legendPos)) legendPos <- NULL else legendPos <- eval(listArg$...$legendPos)
+
     makeLegend(colourVec, legend, cex.legend, legendPos, legendText,
                lenlev, level, ltyVec, noPlot, pchVec = pchVec,
                type, xLimits, yLimits)
 
     ## Resetting graphical parameter
-    par(las = 0)
-
-
+    # par(las = 0)
     if(obj$fit$method == "NPMLE"){
       retData <- NULL
     } else {
@@ -447,7 +450,8 @@ plot.drcte <- function(x, ...,
       # Da fare?
     } else {
 
-  # case parametric curve ############
+  # Case parametric fit ############
+  # It changes the type of oject and uses the plot.drc method in drc
   # Handling multiple covariates
   dose <- obj$dataList[["dose"]]
   if(!is.vector(dose)) doseDim <- length(dose[1,]) else doseDim <- 1
@@ -466,9 +470,9 @@ plot.drcte <- function(x, ...,
   listArg <- as.list(match.call(expand.dots = FALSE)[-1])
   # print(listArg)
   if(is.null(listArg$...$log)) {
-    retData <- plot(obj, log = "", ...)
+    retData <- plot(obj, log = "", add = add, level = level, ...)
   } else {
-    retData <- plot(obj, ...)
+    retData <- plot(obj, add = add, level = level, ...)
   }
   dlNames <- obj$dataList$names
   doseName <- dlNames[["dName"]]
